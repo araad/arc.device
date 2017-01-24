@@ -1,0 +1,19 @@
+{
+  "commands": {
+    "run_openocd": {
+      "fileName": "cmd.exe",
+      "workingDirectory": ".",
+      "arguments": "/c scripts\\run_openocd.cmd"
+    },
+    "flash_device": {
+      "fileName": "cmd.exe",
+      "workingDirectory": ".",
+      "arguments": "/c scripts\\flash_device.cmd"
+    }
+  },
+  "-vs-binding":{"AfterBuild":["flash_device"],"ProjectOpened":["run_openocd"]}
+
+
+
+
+}
