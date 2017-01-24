@@ -3,7 +3,4 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="scripts\run_openocd.cmd" />
-  </ItemGroup>
 </Project>

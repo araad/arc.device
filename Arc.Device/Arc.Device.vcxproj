@@ -107,11 +107,13 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="scripts\run_openocd.cmd" />
-  </ItemGroup>
   <!-- To Enable linux debugger End -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OCDDebuggerExecutable>$(ProgramFiles)\GNU Tools ARM Embedded\6.2 2016q4\bin\arm-none-eabi-gdb.exe</OCDDebuggerExecutable>
+    <DebuggerFlavor>OCDDebugger</DebuggerFlavor>
+    <OCDDebugBinary>$(ProjectDir)BUILD\NUCLEO_F401RE\GCC_ARM\Arc.Device.elf</OCDDebugBinary>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <NMakeBuildCommandLine>mbed compile --profile mbed-os/tools/profiles/debug.json</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>mbed compile -c --profile mbed-os/tools/profiles/debug.json</NMakeReBuildCommandLine>

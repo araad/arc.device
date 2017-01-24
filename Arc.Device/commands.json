@@ -9,11 +9,19 @@
       "fileName": "cmd.exe",
       "workingDirectory": ".",
       "arguments": "/c scripts\\flash_device.cmd"
+    },
+    "mbed_deploy": {
+      "fileName": "cmd.exe",
+      "workingDirectory": ".",
+      "arguments": "/c scripts\\mbed_deploy.cmd"
     }
   },
-  "-vs-binding":{"AfterBuild":["flash_device"],"ProjectOpened":["run_openocd"]}
-
-
-
-
+  "-vs-binding": {
+    "AfterBuild": [
+      "flash_device"
+    ],
+    "ProjectOpened": [
+      "run_openocd"
+    ]
+  }
 }
