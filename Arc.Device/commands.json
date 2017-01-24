@@ -10,10 +10,10 @@
       "workingDirectory": ".",
       "arguments": "/c scripts\\flash_device.cmd"
     },
-    "mbed_deploy": {
+    "init_project": {
       "fileName": "cmd.exe",
       "workingDirectory": ".",
-      "arguments": "/c scripts\\mbed_deploy.cmd"
+      "arguments": "/c scripts\\init_project.cmd"
     }
   },
   "-vs-binding": {
@@ -21,6 +21,7 @@
       "flash_device"
     ],
     "ProjectOpened": [
+	  "init_project",
       "run_openocd"
     ]
   }
