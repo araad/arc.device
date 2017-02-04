@@ -1,13 +1,10 @@
-#include "mbed.h"
-
-DigitalOut led1(LED1);
+#include "utils\LogManager.h"
+#include "core\Device.h"
 
 int main() {
-	while (true) {
-		led1 = !led1;
-		wait(0.5);
-		printf("Hello World\r\n");
-	}
-}
+	set_time(0);
+	Logger.mapThreadName("Main");
+	Logger.SetLevel(Logger.TRACE);
 
-//Hello
+	arc::device::core::Device arcDevice;
+}

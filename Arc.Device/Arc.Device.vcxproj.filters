@@ -2,5 +2,81 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\utils\LogManager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Device.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\TaskManager.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\PanelInterfaceLoader.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\StringHelper.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\ConnectionManager.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\ClientConnection.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="src\net\ResourceService.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{6ec6f33e-26e8-4ae8-bf78-f142e84ac746}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{018bf0b4-c99e-449f-aec7-36fdbca8400a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="interfaces">
+      <UniqueIdentifier>{464c6a66-88d8-48fb-af70-7cb23876a3b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="modules">
+      <UniqueIdentifier>{8be6dc6b-5c21-45cc-a8d4-1ad40a4bfb17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="components">
+      <UniqueIdentifier>{9ed0d96f-9bcf-4040-8c24-4556a01ab2db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="net">
+      <UniqueIdentifier>{b3620c41-6297-44ea-9921-95026ffae806}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\utils\LogManager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\Device.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\TaskManager.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\PanelInterfaceLoader.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\IPanelInterface.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\StringHelper.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\ConnectionManager.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\ClientConnection.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\ResourceService.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\IResourceService.h">
+      <Filter>net</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

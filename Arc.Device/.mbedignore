@@ -1,0 +1,10 @@
+easy-connect/*
+simple-mbed-client/simple-mbed-client.h
+simple-mbed-client/mbed-client-wrapper.h
+mbed-os/features/FEATURE_BLE/*
+mbed-os/features/FEATURE_LWIP/*
+mbed-os/features/FEATURE_UVISOR/*
+mbed-os/features/frameworks/*
+mbed-os/features/nanostack/*
+mbed-os/features/storage/*
+mbed-os/features/unsupported/*

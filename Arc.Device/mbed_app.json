@@ -1,0 +1,55 @@
+{
+  "config": {
+    "network-interface": {
+      "help": "options are ETHERNET,WIFI_ESP8266,MESH_LOWPAN_ND,MESH_THREAD",
+      "value": "WIFI_ESP8266"
+    },
+    "esp8266-tx": {
+      "help": "Pin used as TX (connects to ESP8266 RX)",
+      "value": "D10"
+    },
+    "esp8266-rx": {
+      "help": "Pin used as RX (connects to ESP8266 TX)",
+      "value": "D2"
+    },
+    "esp8266-reset": {
+      "help": "Pin used as Hard Reset",
+      "value": "D8"
+    },
+    "esp8266-ssid": {
+      "value": "\"SSID\""
+    },
+    "esp8266-password": {
+      "value": "\"PWD\""
+    },
+    "esp8266-debug": {
+      "value": false
+    },
+    "panel-interface-detect": {
+      "value": "D12"
+    },
+    "panel-interface-bus0": {
+      "value": null
+    },
+    "panel-interface-bus1": {
+      "value": null
+    },
+    "panel-interface-bus2": {
+      "value": null
+    },
+    "panel-interface-bus3": {
+      "value": null
+    }
+  },
+  "macros": [
+    "MBED_STACK_STATS_ENABLED=1",
+    "MBEDTLS_NO_DEFAULT_ENTROPY_SOURCES",
+    "MBEDTLS_TEST_NULL_ENTROPY",
+    "MBEDTLS_USER_CONFIG_FILE=\"mbedtls_mbed_client_config.h\""
+  ],
+  "target_overrides": {
+    "*": {
+      "target.features_add": [ "IPV4", "COMMON_PAL" ]
+    }
+  }
+}

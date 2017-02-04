@@ -242,3 +242,7 @@ ModelManifest.xml
 .fake/
 /Arc.Device/mbed-os/
 /Arc.Device/mbed_settings.pyc
+/Arc.Device/DebounceIn
+/Arc.Device/PinDetect
+/Arc.Device/simple-mbed-client
+/Arc.Device/esp8266-driver/
