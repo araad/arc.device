@@ -3,6 +3,7 @@
 #include "mbed.h"
 #include "PinDetect.h"
 #include "IPanelInterface.h"
+#include "DebounceIn.h"
 
 namespace arc
 {
@@ -13,12 +14,16 @@ namespace arc
 			class PanelInterfaceLoader
 			{
 			public:
-				PanelInterfaceLoader(Callback<void(bool)> onLoadedCallback);
-				bool isLoaded();
+				PanelInterfaceLoader(Callback<void(int)> onLoadedCallback);
+				int getPanelInterfaceId();
 			private:
 				PinDetect pin;
-				bool loaded;
-				Event<void(bool)>* loadEvent;
+				//BusIn bus;
+				DigitalIn pin0;
+				DigitalIn pin1;
+				DigitalIn pin2;
+				int piId;
+				Event<void(int)>* loadEvent;
 
 				IPanelInterface *panelInterface;
 
@@ -29,6 +34,8 @@ namespace arc
 
 				void load();
 				void unload();
+				IPanelInterface* getInterfaceInstance();
+				int readPins();
 			};
 		}
 	}

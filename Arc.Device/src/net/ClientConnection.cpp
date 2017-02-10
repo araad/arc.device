@@ -41,6 +41,24 @@ void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)
 {
 	Logger.Trace("ClientConnection - UpdateRegistration()");
+
+	regObjectsMutex.lock();
+	int index = -1;
+	for (int i = 0; i < regObjects.size(); i++)
+	{
+		M2MObject* obj = regObjects[i];
+		if (obj->name() == object->name())
+		{
+			index = i;
+		}
+	}
+
+	if (index == -1)
+	{
+		regObjects.push_back(object);
+	}
+	regObjectsMutex.unlock();
+
 	regMutex.lock();
 	if (registered)
 	{
@@ -53,6 +71,23 @@ void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)
 		objectList.push_back(object);
 	}
 	regMutex.unlock();
+}
+
+M2MObject * arc::device::net::ClientConnection::GetRegisteredObject(char * name)
+{
+	Logger.Trace("ClientConnection - GetRegisteredObject() %s", name);
+
+	for (int i = 0; i < regObjects.size(); i++)
+	{
+		M2MObject* obj = regObjects[i];
+		if (obj->name() == name)
+		{
+			Logger.Trace("ClientConnection - GetRegisteredObject() found object");
+			return obj;
+		}
+	}
+
+	return NULL;
 }
 
 void arc::device::net::ClientConnection::bootstrap_done(M2MSecurity * server_object)
@@ -88,7 +123,52 @@ void arc::device::net::ClientConnection::registration_updated(M2MSecurity * secu
 void arc::device::net::ClientConnection::error(M2MInterface::Error error)
 {
 	Logger.mapThreadName("MbedClient");
-	Logger.Error("ClientConnection - error(): %d", error);
+
+	String error_code;
+	switch (error)
+	{
+	case M2MInterface::ErrorNone:
+		error_code += "M2MInterface::ErrorNone";
+		break;
+	case M2MInterface::AlreadyExists:
+		error_code += "M2MInterface::AlreadyExists";
+		break;
+	case M2MInterface::BootstrapFailed:
+		error_code += "M2MInterface::BootstrapFailed";
+		break;
+	case M2MInterface::InvalidParameters:
+		error_code += "M2MInterface::InvalidParameters";
+		break;
+	case M2MInterface::NotRegistered:
+		error_code += "M2MInterface::NotRegistered";
+		break;
+	case M2MInterface::Timeout:
+		error_code += "M2MInterface::Timeout";
+		break;
+	case M2MInterface::NetworkError:
+		error_code += "M2MInterface::NetworkError";
+		break;
+	case M2MInterface::ResponseParseFailed:
+		error_code += "M2MInterface::ResponseParseFailed";
+		break;
+	case M2MInterface::UnknownError:
+		error_code += "M2MInterface::UnknownError";
+		break;
+	case M2MInterface::MemoryFail:
+		error_code += "M2MInterface::MemoryFail";
+		break;
+	case M2MInterface::NotAllowed:
+		error_code += "M2MInterface::NotAllowed";
+		break;
+	case M2MInterface::SecureConnectionFailed:
+		error_code += "M2MInterface::SecureConnectionFailed";
+		break;
+	case M2MInterface::DnsResolvingFailed:
+		error_code += "M2MInterface::DnsResolvingFailed";
+		break;
+	}
+
+	Logger.Error("ClientConnection - error(): %s", error_code.c_str());
 }
 
 void arc::device::net::ClientConnection::value_updated(M2MBase * base, M2MBase::BaseType type)
@@ -121,7 +201,7 @@ void arc::device::net::ClientConnection::value_updated(M2MBase * base, M2MBase::
 			Logger.Trace("Value updated, object name %s, object instance id %d, resource name %s",
 				resource->object_name().c_str(), resource->object_instance_id(), resource->name().c_str());
 		}
-			break;
+								break;
 		case M2MBase::ResourceInstance: {
 			res_instance = (M2MResourceInstance*)base;
 			object_name = res_instance->object_name();
@@ -129,7 +209,7 @@ void arc::device::net::ClientConnection::value_updated(M2MBase * base, M2MBase::
 			resource_name = res_instance->name();
 			resource_instance_id = res_instance->instance_id();
 		}
-			break;
+										break;
 		default:
 			break;
 		}

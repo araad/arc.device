@@ -25,20 +25,23 @@
     "esp8266-debug": {
       "value": false
     },
-    "panel-interface-detect": {
-      "value": "D12"
+    "device-aux-0": {
+      "value": "D5"
     },
-    "panel-interface-bus0": {
-      "value": null
+    "device-aux-1": {
+      "value": "D6"
     },
-    "panel-interface-bus1": {
-      "value": null
+    "panel-interface-bus-0": {
+      "value": "D3"
     },
-    "panel-interface-bus2": {
-      "value": null
+    "panel-interface-bus-1": {
+      "value": "D4"
     },
-    "panel-interface-bus3": {
-      "value": null
+    "panel-interface-bus-2": {
+      "value": "D5"
+    },
+    "panel-interface-bus-3": {
+      "value": "D6"
     }
   },
   "macros": [

@@ -22,12 +22,17 @@ namespace arc
 				Device();
 			private:
 				PanelInterfaceLoader *piLoader;
+				DigitalOut aux0;
+				DigitalOut aux1;
+
 				net::ResourceService service;
 				int time;
 				EventQueue queue;
 
-				void onTimeUpdated(int value);
-				void onPanelInterfaceLoaded(bool value);
+				void onSetCurrentTime(int value);
+				void onPanelInterfaceLoaded(int piId);
+				void onSetAux0(bool value);
+				void onSetAux1(bool value);
 			};
 		}
 	}

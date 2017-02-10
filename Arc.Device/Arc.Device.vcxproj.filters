@@ -26,6 +26,9 @@
     <ClCompile Include="src\net\ResourceService.cpp">
       <Filter>net</Filter>
     </ClCompile>
+    <ClCompile Include="src\interfaces\TestPanel.cpp">
+      <Filter>interfaces</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="utils">
@@ -77,6 +80,9 @@
     </ClInclude>
     <ClInclude Include="src\net\IResourceService.h">
       <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interfaces\TestPanel.h">
+      <Filter>interfaces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -24,11 +24,14 @@ namespace arc
 
 				void Start(NetworkInterface* connHandler);
 				void UpdateRegistration(M2MObject *object);
+				M2MObject* GetRegisteredObject(char* name);
 			private:
 				M2MInterface* interfaceObject;
 				M2MSecurity* securityObject;
 				M2MDevice* deviceObject;
 				M2MObjectList objectList;
+				M2MObjectList regObjects;
+				rtos::Mutex regObjectsMutex;
 				bool registered;
 				rtos::Mutex regMutex;
 

@@ -26,9 +26,11 @@ namespace arc
 				}ResourceType;
 
 				ResourceService(char* name, EventQueue* queue);
+				~ResourceService();
 
 				void AddResource(const char* name, char* category, ResourceType type, void* value, void* cb = NULL);
-				void updateValue(const char* name, ResourceType type, void* value);
+				void AddMethod(const char* name, char* category, ResourceType type, void* cb);
+				void updateValue(const char* name, void* value);
 			private:
 				M2MObject *object;
 				M2MObjectInstance *instance;
@@ -36,6 +38,7 @@ namespace arc
 				map<string, void*> cbMap;
 
 				void onValueUpdated(const char* name);
+				void onMethodExecute(void* args);
 			};
 		}
 	}

@@ -15,7 +15,7 @@ namespace arc
 			public:
 				TaskManager(EventQueue* queue);
 
-				void AddRecurringTask(Callback<void()> cb, int period);
+				int AddRecurringTask(Callback<void()> cb, int period);
 				
 				void AddDelayedTask(Callback<void()> cb, int delay);
 				void AddDelayedTask(Callback<void(bool)> cb, int delay);
@@ -28,10 +28,13 @@ namespace arc
 				void AddOneTimeTask(Callback<void(char*)> cb);
 
 				void AddTask();
+
+				void CancelTask(int taskId);
 				void Start();
 				EventQueue* GetQueue();
 			private:
 				EventQueue *queue;
+				Mutex queueMutex;
 			};
 		}
 	}

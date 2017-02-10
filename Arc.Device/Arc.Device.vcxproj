@@ -84,6 +84,7 @@
     <ClCompile Include="src\core\Device.cpp" />
     <ClCompile Include="src\core\PanelInterfaceLoader.cpp" />
     <ClCompile Include="src\core\TaskManager.cpp" />
+    <ClCompile Include="src\interfaces\TestPanel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\net\ClientConnection.cpp" />
     <ClCompile Include="src\net\ConnectionManager.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="src\core\IPanelInterface.h" />
     <ClInclude Include="src\core\PanelInterfaceLoader.h" />
     <ClInclude Include="src\core\TaskManager.h" />
+    <ClInclude Include="src\interfaces\TestPanel.h" />
     <ClInclude Include="src\net\ClientConnection.h" />
     <ClInclude Include="src\net\ConnectionManager.h" />
     <ClInclude Include="src\net\IResourceService.h" />
