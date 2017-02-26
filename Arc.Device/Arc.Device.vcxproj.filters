@@ -29,6 +29,15 @@
     <ClCompile Include="src\interfaces\TestPanel.cpp">
       <Filter>interfaces</Filter>
     </ClCompile>
+    <ClCompile Include="src\net\NetworkDiscovery.cpp">
+      <Filter>net</Filter>
+    </ClCompile>
+    <ClCompile Include="esp8266-driver\ESP8266\ESP8266.cpp">
+      <Filter>esp</Filter>
+    </ClCompile>
+    <ClCompile Include="esp8266-driver\ESP8266Interface.cpp">
+      <Filter>esp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="utils">
@@ -48,6 +57,9 @@
     </Filter>
     <Filter Include="net">
       <UniqueIdentifier>{b3620c41-6297-44ea-9921-95026ffae806}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="esp">
+      <UniqueIdentifier>{b8891405-66ca-4ca9-9703-fa215d417fb4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +95,15 @@
     </ClInclude>
     <ClInclude Include="src\interfaces\TestPanel.h">
       <Filter>interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\net\NetworkDiscovery.h">
+      <Filter>net</Filter>
+    </ClInclude>
+    <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h">
+      <Filter>esp</Filter>
+    </ClInclude>
+    <ClInclude Include="esp8266-driver\ESP8266Interface.h">
+      <Filter>esp</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -9,19 +9,21 @@ arc::device::net::ResourceService::ResourceService(char * name, EventQueue* queu
 	if (Client)
 	{
 		object = Client->GetRegisteredObject(name);
-		if (object)
+		if (!object)
 		{
-			instance = object->object_instance();
+			object = M2MInterfaceFactory::create_object(name);
 		}
 	}
-
-	if (!object)
+	else
 	{
 		object = M2MInterfaceFactory::create_object(name);
-		if (object)
-		{
-			instance = object->create_object_instance();
-		}
+	}
+
+	instance = object->object_instance();
+
+	if (!instance)
+	{
+		instance = object->create_object_instance();
 	}
 
 	this->queue = queue;

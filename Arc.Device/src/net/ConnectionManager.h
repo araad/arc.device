@@ -4,6 +4,7 @@
 #include "features\netsocket\NetworkInterface.h"
 #include "rtos\Thread.h"
 #include "ClientConnection.h"
+#include "NetworkDiscovery.h"
 
 namespace arc
 {
@@ -18,14 +19,28 @@ namespace arc
 
 				void Start();
 			private:
+				Mutex networkMutex;
 				NetworkInterface *network;
-				DigitalOut resetPin;
-				rtos::Thread *connThread;
+
+				rtos::Thread *connectionThread;
 				ClientConnection* client;
+
+				rtos::Thread *discoveryThread;
+				NetworkDiscovery* netDiscovery;
+				Timeout discoveryTimeout;
+
+
+				string ssid;
+				string pswd;
 				
 				void resetWifi();
+				void startConnection();
 				void connect();
-				void runTask();
+				void startDiscovery();
+				void discover();
+				void discoverTimeout_ISR();
+				void discoverTimeout();
+				void onDiscoverComplete(char* ssid, char* pswd);
 			};
 		}
 	}

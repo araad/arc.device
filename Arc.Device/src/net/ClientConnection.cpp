@@ -32,10 +32,11 @@ arc::device::net::ClientConnection::ClientConnection()
 
 void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 {
-	Logger.Trace("ClientConnection - Start()");
+	Logger.Trace("ClientConnection - Start() begin");
 	interfaceObject->set_platform_network_handler((void*)connHandler);
 	interfaceObject->register_object(securityObject, objectList);
 	objectList.clear();
+	Logger.Trace("ClientConnection - Start() end");
 }
 
 void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)
@@ -77,15 +78,18 @@ M2MObject * arc::device::net::ClientConnection::GetRegisteredObject(char * name)
 {
 	Logger.Trace("ClientConnection - GetRegisteredObject() %s", name);
 
+	regObjectsMutex.lock();
 	for (int i = 0; i < regObjects.size(); i++)
 	{
 		M2MObject* obj = regObjects[i];
 		if (obj->name() == name)
 		{
 			Logger.Trace("ClientConnection - GetRegisteredObject() found object");
+			regObjectsMutex.unlock();
 			return obj;
 		}
 	}
+	regObjectsMutex.unlock();
 
 	return NULL;
 }

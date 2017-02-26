@@ -11,12 +11,17 @@ using namespace arc::device::net;
 arc::device::core::TaskManager* Tasks;
 arc::device::net::ConnectionManager* Connection;
 
+void heartbeat() {
+	Logger.Trace("heartbeat");
+}
+
 arc::device::core::Device::Device()
 	: aux0(MBED_CONF_APP_DEVICE_AUX_0), aux1(MBED_CONF_APP_DEVICE_AUX_1), service("dev", &queue)
 {
-	Logger.Trace("Device - ctor()");
+	Logger.Trace("Device - ctor() 1");
 
 	Tasks = new TaskManager(&queue);
+	//Tasks->AddRecurringTask(callback(&heartbeat), 2000);
 	Connection = new ConnectionManager();
 
 	// Start the connection manager

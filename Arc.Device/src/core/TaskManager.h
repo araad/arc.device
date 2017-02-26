@@ -25,7 +25,8 @@ namespace arc
 				void AddOneTimeTask(Callback<void()> cb);
 				void AddOneTimeTask(Callback<void(bool)> cb, bool val);
 				void AddOneTimeTask(Callback<void(int)> cb);
-				void AddOneTimeTask(Callback<void(char*)> cb);
+				void AddOneTimeTask(Callback<void(char*)> cb, char* val);
+				void AddOneTimeTask(Callback<void(char*, char*)> cb, char* val1, char* val2);
 
 				void AddTask();
 

@@ -26,7 +26,6 @@ void arc::device::interfaces::TestPanel::Start()
 void arc::device::interfaces::TestPanel::Stop()
 {
 	Logger.Trace("TestPanel stopped");
-	Tasks->CancelTask(readBtnTaskId);
 }
 
 void arc::device::interfaces::TestPanel::onBtnPress_ISR()
