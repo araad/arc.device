@@ -17,10 +17,10 @@
       "value": "D8"
     },
     "esp8266-ssid": {
-      "value": "\"millenia\""
+      "value": "\"SSID\""
     },
     "esp8266-password": {
-      "value": "\"5146622637\""
+      "value": "\"PSWD\""
     },
     "esp8266-debug": {
       "value": false
