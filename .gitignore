@@ -245,3 +245,4 @@ ModelManifest.xml
 /Arc.Device/DebounceIn
 /Arc.Device/PinDetect
 /Arc.Device/simple-mbed-client
+/Arc.Device/esp8266-driver/
