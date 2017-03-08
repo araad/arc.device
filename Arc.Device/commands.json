@@ -16,7 +16,7 @@
       "arguments": "/c scripts\\init_project.cmd"
     }
   },
-  "-vs-binding":{"AfterBuild":["flash_device"],"ProjectOpened":["run_openocd"]}
+  "-vs-binding":{"AfterBuild":["flash_device"]}
 
 
 

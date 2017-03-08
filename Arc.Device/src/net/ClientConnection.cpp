@@ -5,38 +5,88 @@ arc::device::net::ClientConnection::ClientConnection()
 {
 	Logger.Trace("ClientConnection - ctor()");
 	registered = false;
-	interfaceObject = M2MInterfaceFactory::create_interface(*this, MBED_ENDPOINT_NAME, "test", 60, 5684, MBED_DOMAIN, M2MInterface::TCP);
 
-	securityObject = M2MInterfaceFactory::create_security(M2MSecurity::M2MServer);
-	if (securityObject)
-	{
-		securityObject->set_resource_value(M2MSecurity::M2MServerUri, "coap://api.connector.mbed.com:5684");
-		securityObject->set_resource_value(M2MSecurity::BootstrapServer, 0);
-		securityObject->set_resource_value(M2MSecurity::SecurityMode, M2MSecurity::Certificate);
-		securityObject->set_resource_value(M2MSecurity::ServerPublicKey, SERVER_CERT, sizeof(SERVER_CERT));
-		securityObject->set_resource_value(M2MSecurity::PublicKey, CERT, sizeof(CERT));
-		securityObject->set_resource_value(M2MSecurity::Secretkey, KEY, sizeof(KEY));
-	}
-
-	deviceObject = M2MInterfaceFactory::create_device();
-	if (deviceObject)
-	{
-		deviceObject->create_resource(M2MDevice::Manufacturer, "Team22");
-		deviceObject->create_resource(M2MDevice::DeviceType, "Arc.Device");
-		deviceObject->create_resource(M2MDevice::ModelNumber, "Model_Number");
-		deviceObject->create_resource(M2MDevice::SerialNumber, "Serial_Number");
-	}
-
-	objectList.push_back(deviceObject);
+	interfaceObject = 0;
+	securityObject = 0;
+	deviceObject = 0;
 }
 
 void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 {
 	Logger.Trace("ClientConnection - Start() begin");
-	interfaceObject->set_platform_network_handler((void*)connHandler);
-	interfaceObject->register_object(securityObject, objectList);
-	objectList.clear();
+
+	interfaceObject = M2MInterfaceFactory::create_interface(*this, MBED_ENDPOINT_NAME, "test", 60, 5684, MBED_DOMAIN, M2MInterface::TCP);
+
+	Logger.Trace("ClientConnection - Start() interface created");
+
+	if (!securityObject)
+	{
+		securityObject = M2MInterfaceFactory::create_security(M2MSecurity::M2MServer);
+		if (securityObject)
+		{
+			securityObject->set_resource_value(M2MSecurity::M2MServerUri, "coap://api.connector.mbed.com:5684");
+			securityObject->set_resource_value(M2MSecurity::BootstrapServer, 0);
+			securityObject->set_resource_value(M2MSecurity::SecurityMode, M2MSecurity::Certificate);
+			securityObject->set_resource_value(M2MSecurity::ServerPublicKey, SERVER_CERT, sizeof(SERVER_CERT));
+			securityObject->set_resource_value(M2MSecurity::PublicKey, CERT, sizeof(CERT));
+			securityObject->set_resource_value(M2MSecurity::Secretkey, KEY, sizeof(KEY));
+		}
+	}
+
+	if (!deviceObject)
+	{
+		deviceObject = M2MInterfaceFactory::create_device();
+		if (deviceObject)
+		{
+			deviceObject->create_resource(M2MDevice::Manufacturer, "Team22");
+			deviceObject->create_resource(M2MDevice::DeviceType, "Arc.Device");
+			deviceObject->create_resource(M2MDevice::ModelNumber, "Model_Number");
+			deviceObject->create_resource(M2MDevice::SerialNumber, "Serial_Number");
+		}
+	}
+
+	if (interfaceObject && securityObject && deviceObject)
+	{
+		objectList.push_back(deviceObject);
+
+		interfaceObject->set_platform_network_handler((void*)connHandler);
+		interfaceObject->register_object(securityObject, objectList);
+		objectList.clear();
+	}
+	else
+	{
+		Logger.Error("ClientConnection - Start() objects are not instantiated");
+	}
 	Logger.Trace("ClientConnection - Start() end");
+}
+
+void arc::device::net::ClientConnection::Stop()
+{
+	Logger.Trace("Stopping ClientConnection");
+	if (interfaceObject)
+	{
+		delete interfaceObject;
+		interfaceObject = 0;
+	}
+	if (securityObject)
+	{
+		delete securityObject;
+		securityObject = 0;
+	}
+
+	for (int i = 0; i < regObjects.size(); i++)
+	{
+		objectList.push_back(regObjects[i]);
+	}
+}
+
+void arc::device::net::ClientConnection::Unregister()
+{
+	if (interfaceObject)
+	{
+		interfaceObject->unregister_object();
+		registered = false;
+	}
 }
 
 void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)

@@ -1,10 +1,16 @@
 #include "NetworkDiscovery.h"
 #include "../utils/LogManager.h"
 #include <string>
-#include "features\netsocket\WiFiAccessPoint.h"
 #include "../core/TaskManager.h"
+#include "MbedJSONValue.h"
+#include <vector>
+#include <algorithm>
+
+#include "platform\mbed_stats.h"
+mbed_stats_heap_t heap_stats;
 
 arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Callback<void(char*, char*)> discoverComplete)
+	: espThread(osPriorityNormal, 512 * 5)
 {
 	Logger.Trace("NetworkDiscovery - ctor()");
 
@@ -13,27 +19,45 @@ arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Call
 
 	Logger.Trace("starting up as AP...");
 	esp->startup(3);
+	scanNetworks();
 	Logger.Trace("configuring...");
 	esp->configureSoftAP("ARC_Discovery");
 	Logger.Trace("starting server...");
 	esp->startServer();
 	Logger.Trace("Server started");
 
-	espThread = new Thread(osPriorityNormal, 4096);
-	espThread->start(callback(this, &NetworkDiscovery::listen));
+	espThread.start(callback(this, &NetworkDiscovery::listen));
 }
 
 arc::device::net::NetworkDiscovery::~NetworkDiscovery()
 {
 	Logger.Trace("NetworkDiscovery - dtor()");
-	espThread->terminate();
-	delete espThread;
+	espThread.terminate();
 
 	bool closed = esp->close(0);
 	Logger.Trace("closed: %d", closed);
 
 	Logger.Trace("stopping server...");
 	esp->stopServer();
+}
+
+bool sortAp(WiFiAccessPoint a, WiFiAccessPoint b)
+{
+	int a_rssi = a.get_rssi();
+	int b_rssi = b.get_rssi();
+	return a_rssi > b_rssi;
+}
+
+void arc::device::net::NetworkDiscovery::scanNetworks()
+{
+	Logger.Trace("Getting AP List...");
+
+	apCount = esp->scan(apList, apCount);
+	std::sort(apList, apList + apCount, sortAp);
+
+	apCount = min(11, apCount);
+	apToSend = apCount;
+	apResponseCount = max(1, (int)ceil((float)apCount / (float)maxApPerResponse));
 }
 
 void arc::device::net::NetworkDiscovery::listen()
@@ -46,7 +70,7 @@ void arc::device::net::NetworkDiscovery::listen()
 		char req[450];
 		string request;
 		int length = esp->recv(0, req, 450);
-		Logger.Trace("received: %s", req);
+		Logger.Trace("received: %d", length);
 		request = "";
 		if (length > 0)
 		{
@@ -66,38 +90,42 @@ void arc::device::net::NetworkDiscovery::listen()
 
 void arc::device::net::NetworkDiscovery::sendAPList()
 {
-	Logger.Trace("Getting AP List...");
-
-	WiFiAccessPoint *ap;
-	int count = 30;
-
-	ap = new WiFiAccessPoint[count];
-	count = esp->scan(ap, count);
-
-	string data("{\"result\":[");
-	for (int i = 0; i < count; i++) {
-		data.append("\"");
-		data.append(ap[i].get_ssid());
-		data.append("\"");
-		if (i == (count - 1))
+	if (currentResponseIndex < apResponseCount)
+	{
+		int currentApIndex = (currentResponseIndex)*maxApPerResponse;
+		int limit = currentApIndex + maxApPerResponse;
+		if (apToSend < maxApPerResponse)
 		{
-			data.append("]}");
+			limit = currentApIndex + apToSend;
 		}
-		else
-		{
-			data.append(",");
+		MbedJSONValue data;
+		MbedJSONValue jObj;
+		data["more"] = limit < apCount;
+
+		for (int i = currentApIndex, j = 0; i < limit; i++, j++) {
+			jObj["ssid"] = apList[i].get_ssid();
+			jObj["signal"] = apList[i].get_rssi();
+			char mac[18];
+			const uint8_t* bssid = apList[i].get_bssid();
+			sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x", bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
+			jObj["mac"] = mac;
+			jObj["security"] = apList[i].get_security();
+			data["result"][j] = jObj;
 		}
+
+		Logger.Trace("Sending AP List...");
+
+		string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nContent-Length: ");
+		string dataStr = data.serialize();
+		char size_buf[5];
+		itoa(dataStr.length(), size_buf, 10);
+		response.append(size_buf);
+		response.append("\r\n\r\n");
+		response.append(dataStr.c_str());
+		esp->send(0, response.c_str(), response.length());
+
+		apToSend = apCount - (++currentResponseIndex*maxApPerResponse);
 	}
-
-	Logger.Trace("Sending AP List...");
-
-	string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nContent-Length: ");
-	char size_buf[5];
-	itoa(data.length(), size_buf, 10);
-	response.append(size_buf);
-	response.append("\r\n\r\n");
-	response.append(data.c_str());
-	esp->send(0, response.c_str(), response.length());
 }
 
 void arc::device::net::NetworkDiscovery::receiveAPCredentials(string request)
@@ -111,7 +139,7 @@ void arc::device::net::NetworkDiscovery::receiveAPCredentials(string request)
 	Logger.Trace("NetworkDiscovery - receiveAPCredentials() ssid: %s pswd: %s", ssid, pswd);
 
 	Logger.Trace("sending response...");
-	string response("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
+	string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 0\r\n\r\n");
 	esp->send(0, response.c_str(), response.length());
 
 	Logger.Trace("Adding one time task...");

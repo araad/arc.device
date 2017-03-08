@@ -83,9 +83,15 @@
   <ItemGroup>
     <ClCompile Include="esp8266-driver\ESP8266Interface.cpp" />
     <ClCompile Include="esp8266-driver\ESP8266\ESP8266.cpp" />
+    <ClCompile Include="src\components\Button.cpp" />
+    <ClCompile Include="src\components\CurrentSensor.cpp" />
+    <ClCompile Include="src\components\Sensor.cpp" />
     <ClCompile Include="src\core\Device.cpp" />
     <ClCompile Include="src\core\PanelInterfaceLoader.cpp" />
+    <ClCompile Include="src\core\SystemController.cpp" />
+    <ClCompile Include="src\core\Task.cpp" />
     <ClCompile Include="src\core\TaskManager.cpp" />
+    <ClCompile Include="src\interfaces\ElectricalOutletPanel.cpp" />
     <ClCompile Include="src\interfaces\TestPanel.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\net\ClientConnection.cpp" />
@@ -98,10 +104,16 @@
   <ItemGroup>
     <ClInclude Include="esp8266-driver\ESP8266Interface.h" />
     <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h" />
+    <ClInclude Include="src\components\Button.h" />
+    <ClInclude Include="src\components\CurrentSensor.h" />
+    <ClInclude Include="src\components\Sensor.h" />
     <ClInclude Include="src\core\Device.h" />
     <ClInclude Include="src\core\IPanelInterface.h" />
     <ClInclude Include="src\core\PanelInterfaceLoader.h" />
+    <ClInclude Include="src\core\SystemController.h" />
+    <ClInclude Include="src\core\Task.h" />
     <ClInclude Include="src\core\TaskManager.h" />
+    <ClInclude Include="src\interfaces\ElectricalOutletPanel.h" />
     <ClInclude Include="src\interfaces\TestPanel.h" />
     <ClInclude Include="src\net\ClientConnection.h" />
     <ClInclude Include="src\net\ConnectionManager.h" />
@@ -119,10 +131,10 @@
     <OCDDebugBinary>$(ProjectDir)BUILD\NUCLEO_F401RE\GCC_ARM\Arc.Device.elf</OCDDebugBinary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>mbed compile --profile mbed-os/tools/profiles/debug.json</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>mbed compile -c --profile mbed-os/tools/profiles/small.json</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_INTELLISENSE;DEVICE_LOCALFILESYSTEM</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(ProjectDir)simple-mbed-client\mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeBuildCommandLine>mbed compile --profile build_debug.json</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_INTELLISENSE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>$(ProjectDir)MbedJSONValue;$(ProjectDir)simple-mbed-client\mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <OutDir>$(SolutionDir)BUILD\</OutDir>
     <IntDir>BUILD</IntDir>
   </PropertyGroup>

@@ -15,8 +15,8 @@ namespace arc
 			public:
 				TaskManager(EventQueue* queue);
 
-				int AddRecurringTask(Callback<void()> cb, int period);
-				
+				int AddRecurringTask(const char* name, Callback<void()> cb, int period);
+
 				void AddDelayedTask(Callback<void()> cb, int delay);
 				void AddDelayedTask(Callback<void(bool)> cb, int delay);
 				void AddDelayedTask(Callback<void(int)> cb, int delay);

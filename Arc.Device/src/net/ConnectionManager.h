@@ -1,10 +1,11 @@
 #pragma once
 
 #include "mbed.h"
-#include "features\netsocket\NetworkInterface.h"
+#include "ESP8266Interface.h"
 #include "rtos\Thread.h"
 #include "ClientConnection.h"
 #include "NetworkDiscovery.h"
+#include "../core/Task.h"
 
 namespace arc
 {
@@ -17,26 +18,30 @@ namespace arc
 			public:
 				ConnectionManager();
 
-				void Start();
+				void StartConnection();
+				void StopConnection();
+				void StartDiscovery();
+				void StopDiscovery();
 			private:
 				Mutex networkMutex;
-				NetworkInterface *network;
+				ESP8266Interface *network;
 
-				rtos::Thread *connectionThread;
 				ClientConnection* client;
+				rtos::Thread *connectionThread;
+				core::Task<Callback<void()>>* connectionTask;
 
-				rtos::Thread *discoveryThread;
 				NetworkDiscovery* netDiscovery;
+				rtos::Thread *discoveryThread;
+				core::Task<Callback<void()>>* discoveryTask;
 				Timeout discoveryTimeout;
 
 
 				string ssid;
 				string pswd;
 				
+				void do_startDiscovery();
 				void resetWifi();
-				void startConnection();
 				void connect();
-				void startDiscovery();
 				void discover();
 				void discoverTimeout_ISR();
 				void discoverTimeout();

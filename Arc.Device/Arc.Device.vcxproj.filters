@@ -32,11 +32,29 @@
     <ClCompile Include="src\net\NetworkDiscovery.cpp">
       <Filter>net</Filter>
     </ClCompile>
-    <ClCompile Include="esp8266-driver\ESP8266\ESP8266.cpp">
-      <Filter>esp</Filter>
+    <ClCompile Include="src\core\SystemController.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Task.cpp">
+      <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="esp8266-driver\ESP8266Interface.cpp">
       <Filter>esp</Filter>
+    </ClCompile>
+    <ClCompile Include="esp8266-driver\ESP8266\ESP8266.cpp">
+      <Filter>esp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\Button.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\interfaces\ElectricalOutletPanel.cpp">
+      <Filter>interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\Sensor.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\CurrentSensor.cpp">
+      <Filter>components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,11 +117,29 @@
     <ClInclude Include="src\net\NetworkDiscovery.h">
       <Filter>net</Filter>
     </ClInclude>
-    <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h">
-      <Filter>esp</Filter>
+    <ClInclude Include="src\core\SystemController.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\Task.h">
+      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="esp8266-driver\ESP8266Interface.h">
       <Filter>esp</Filter>
+    </ClInclude>
+    <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h">
+      <Filter>esp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\Button.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interfaces\ElectricalOutletPanel.h">
+      <Filter>interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\Sensor.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\CurrentSensor.h">
+      <Filter>components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

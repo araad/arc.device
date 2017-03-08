@@ -23,6 +23,8 @@ namespace arc
 				ClientConnection();
 
 				void Start(NetworkInterface* connHandler);
+				void Stop();
+				void Unregister();
 				void UpdateRegistration(M2MObject *object);
 				M2MObject* GetRegisteredObject(char* name);
 			private:

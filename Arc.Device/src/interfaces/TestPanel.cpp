@@ -1,5 +1,6 @@
 #include "TestPanel.h"
 #include "../utils/LogManager.h"
+#include "./../core/TaskManager.h"
 
 arc::device::interfaces::TestPanel::TestPanel()
 	:lightSwitch(D14), btn(USER_BUTTON), service("3311", Tasks->GetQueue())

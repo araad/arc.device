@@ -18,12 +18,11 @@ namespace arc
 				int getPanelInterfaceId();
 			private:
 				PinDetect pin;
-				//BusIn bus;
 				DigitalIn pin0;
 				DigitalIn pin1;
 				DigitalIn pin2;
 				int piId;
-				Event<void(int)>* loadEvent;
+				Event<void(int)> loadEvent;
 
 				IPanelInterface *panelInterface;
 

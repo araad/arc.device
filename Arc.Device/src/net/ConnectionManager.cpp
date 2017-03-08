@@ -1,5 +1,4 @@
 #include "ConnectionManager.h"
-#include "ESP8266Interface.h"
 #include "WiFiAccessPoint.h"
 #include "../utils/LogManager.h"
 #include "../core/TaskManager.h"
@@ -9,26 +8,80 @@
 #endif
 
 using namespace arc::device::net;
+using namespace arc::device::core;
 
 ClientConnection* Client;
-ESP8266Interface esp(MBED_CONF_APP_ESP8266_TX, MBED_CONF_APP_ESP8266_RX);
 
 Mutex credMutex;
 
-arc::device::net::ConnectionManager::ConnectionManager() {}
-
-void arc::device::net::ConnectionManager::Start()
+arc::device::net::ConnectionManager::ConnectionManager()
 {
-	Logger.Trace("ConnectionManager - Start()");
+	network = 0;
 
+	connectionTask = 0;
+	connectionThread = 0;
+	discoveryTask = 0;
+	discoveryThread = 0;
 
 	Client = new ClientConnection();
+}
 
-	startDiscovery();
-	//startConnection();
+void arc::device::net::ConnectionManager::StartConnection()
+{
+	Logger.Trace("starting connection...");
+	if (discoveryThread)
+	{
+		delete discoveryThread;
+		discoveryThread = 0;
+	}
+
+	if (network)
+	{
+		delete network;
+		network = 0;
+	}
+
+	connectionTask = new Task<Callback<void()>>("Connection", callback(this, &ConnectionManager::connect), false);
+	connectionThread = new Thread(osPriorityNormal, 512 * 3);
+	connectionThread->start(callback(&TaskBase::taskStarter<Task<Callback<void()>>>, connectionTask));
+}
+
+void arc::device::net::ConnectionManager::StopConnection()
+{
+}
+
+void arc::device::net::ConnectionManager::StartDiscovery()
+{
+	Logger.Trace("starting discovery...");
+	int delay = 0;
+	if (connectionThread)
+	{
+		Client->Unregister();
+		Tasks->AddDelayedTask(callback(Client, &ClientConnection::Stop), 1000);
+		delete connectionThread;
+		connectionThread = 0;
+		delay = 3000;
+	}
+
+	Tasks->AddDelayedTask(callback(this, &ConnectionManager::do_startDiscovery), delay);
 }
 
 DigitalOut resetPin(MBED_CONF_APP_ESP8266_RESET);
+
+void arc::device::net::ConnectionManager::do_startDiscovery()
+{
+	if (network)
+	{
+		network->disconnect();
+		delete network;
+		network = 0;
+	}
+
+	discoveryTask = new core::Task<Callback<void()>>("Discover", callback(this, &ConnectionManager::discover), false);
+	discoveryThread = new Thread(osPriorityNormal, 256 * 7);
+	discoveryTimeout.attach(callback(this, &ConnectionManager::discoverTimeout_ISR), 180);
+	discoveryThread->start(callback(&core::TaskBase::taskStarter<core::Task<Callback<void()>>>, discoveryTask));
+}
 
 void arc::device::net::ConnectionManager::resetWifi()
 {
@@ -39,13 +92,6 @@ void arc::device::net::ConnectionManager::resetWifi()
 	wait(0.1);
 }
 
-void arc::device::net::ConnectionManager::startConnection()
-{
-	Logger.Trace("starting connection...");
-	connectionThread = new Thread(osPriorityNormal, 4096);
-	connectionThread->start(this, &ConnectionManager::connect);
-}
-
 void arc::device::net::ConnectionManager::connect()
 {
 	Logger.mapThreadName("Connect");
@@ -53,46 +99,59 @@ void arc::device::net::ConnectionManager::connect()
 
 	resetWifi();
 
+	int connError = 1;
+	connectionTask->state = TaskState::ASLEEP;
 	credMutex.lock();
-	Logger.Trace("ConnectionManager - connect(): Connecting to Network \"%s\"", ssid.c_str());
-	int connError = esp.connect(ssid.c_str(), pswd.c_str());
+	connectionTask->state = TaskState::ALIVE;
+
+	if (!ssid.empty() && !pswd.empty())
+	{
+		Logger.Trace("ConnectionManager - connect(): Connecting to Network \"%s\"", ssid.c_str());
+
+		connectionTask->state = TaskState::ASLEEP;
+		network = new ESP8266Interface(MBED_CONF_APP_ESP8266_TX, MBED_CONF_APP_ESP8266_RX);
+		connError = network->connect(ssid.c_str(), pswd.c_str());
+		connectionTask->state = TaskState::ALIVE;
+	}
+
 	credMutex.unlock();
+
 	if (connError == 0)
 	{
-		Logger.Trace("ConnectionManager - connect(): Connected to Network successfully");
-		network = (NetworkInterface*)&esp;
+		Logger.Trace("ConnectionManager - connect(): Connected");
+		connectionTask->state = TaskState::ASLEEP;
 		Client->Start(network);
+		connectionTask->state = TaskState::ALIVE;
 	}
 	else
 	{
 		Logger.Error("ConnectionManager - connect(): Connection to Network Failed %d", connError);
 	}
-}
 
-void arc::device::net::ConnectionManager::startDiscovery()
-{
-	discoveryThread = new Thread(osPriorityNormal, 4096);
-	discoveryThread->start(this, &ConnectionManager::discover);
-	discoveryTimeout.attach(callback(this, &ConnectionManager::discoverTimeout_ISR), 120);
+	delete connectionTask;
 }
 
 void arc::device::net::ConnectionManager::discover()
 {
 	Logger.mapThreadName("Discover");
 
+	discoveryTask->state = TaskState::ASLEEP;
 	resetWifi();
-
-	netDiscovery = new NetworkDiscovery(&esp, callback(this, &ConnectionManager::onDiscoverComplete));
+	network = new ESP8266Interface(MBED_CONF_APP_ESP8266_TX, MBED_CONF_APP_ESP8266_RX);
+	netDiscovery = new NetworkDiscovery(network, callback(this, &ConnectionManager::onDiscoverComplete));
 
 	Logger.Trace("waiting...");
 	Thread::signal_wait(0x1);
 
 	Logger.Trace("deleting discovery");
 	delete netDiscovery;
+	discoveryTask->state = TaskState::ALIVE;
 	Logger.Trace("Done");
 
-	wait(1);
-	Tasks->AddOneTimeTask(callback(this, &ConnectionManager::startConnection));
+	//wait(1);
+	Tasks->AddOneTimeTask(callback(this, &ConnectionManager::StartConnection));
+
+	delete discoveryTask;
 }
 
 void arc::device::net::ConnectionManager::discoverTimeout_ISR()

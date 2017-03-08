@@ -3,7 +3,6 @@
 #include "mbed.h"
 #include "../core/IPanelInterface.h"
 #include "PinDetect.h"
-#include "./../core/TaskManager.h"
 #include "./../net/ResourceService.h"
 
 using namespace arc::device::core;

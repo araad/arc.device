@@ -2,7 +2,7 @@
 #include "../utils/LogManager.h"
 #include "TaskManager.h"
 #include "cmsis/core_cm4.h"
-#include "../interfaces/TestPanel.h"
+#include "../interfaces/ElectricalOutletPanel.h"
 
 #ifdef MBED_CONFIG_INTELLISENSE
 #include "../BUILD/NUCLEO_F401RE/GCC_ARM/mbed_config.h"
@@ -12,39 +12,35 @@ using namespace arc::device::core;
 
 extern "C" void __NVIC_SystemReset();
 
-DigitalOut outpin(D15);
-DigitalOut outpin2(D12);
-DigitalOut led(LED2);
+DigitalOut output1(D15);
+DigitalOut output2(D12);
+DigitalOut output3(D14);
 
 arc::device::core::PanelInterfaceLoader::PanelInterfaceLoader(Callback<void(int)> onLoadedCallback)
 	: pin(MBED_CONF_APP_PANEL_INTERFACE_BUS_0),
-	/*bus(MBED_CONF_APP_PANEL_INTERFACE_BUS_1,
-		MBED_CONF_APP_PANEL_INTERFACE_BUS_2,
-		MBED_CONF_APP_PANEL_INTERFACE_BUS_3)*/
 	pin0(MBED_CONF_APP_PANEL_INTERFACE_BUS_1),
 	pin1(MBED_CONF_APP_PANEL_INTERFACE_BUS_2),
-	pin2(MBED_CONF_APP_PANEL_INTERFACE_BUS_3)
+	pin2(MBED_CONF_APP_PANEL_INTERFACE_BUS_3),
+	loadEvent(Tasks->GetQueue(), onLoadedCallback)
 {
 	Logger.Trace("PanelInterfaceLoader - ctor");
 
+	output1 = 1;
+	output2 = 1;
+	output3 = 1;
+
 	panelInterface = NULL;
-	outpin = 1;
-	outpin2 = 1;
-	loadEvent = new Event<void(int)>(Tasks->GetQueue(), onLoadedCallback);
 
 	if (pin == 1)
 	{
-		//piId = bus.read();
 		piId = readPins();
 		Logger.Info("pi is connected, piId: %d", piId);
-		led = 1;
 		load();
 	}
 	else
 	{
 		piId = 0;
 		Logger.Info("pi is disconnected");
-		led = 0;
 	}
 
 	pin.attach_asserted(this, &PanelInterfaceLoader::onPanelInterfaceAttach_ISR);
@@ -59,20 +55,17 @@ int arc::device::core::PanelInterfaceLoader::getPanelInterfaceId()
 
 void arc::device::core::PanelInterfaceLoader::onPanelInterfaceAttach_ISR()
 {
-	led = 1;
 	Tasks->AddOneTimeTask(callback(this, &PanelInterfaceLoader::onPanelInterfaceAttach));
 }
 
 void arc::device::core::PanelInterfaceLoader::onPanelInterfaceDetach_ISR()
 {
-	led = 0;
 	Tasks->AddOneTimeTask(callback(this, &PanelInterfaceLoader::onPanelInterfaceDetach));
 }
 
 void arc::device::core::PanelInterfaceLoader::onPanelInterfaceAttach()
 {
 	Logger.Trace("PanelInterfaceLoader - onPanelInterfaceAttach");
-	//piId = bus.read();
 	piId = readPins();
 	load();
 }
@@ -93,7 +86,7 @@ void arc::device::core::PanelInterfaceLoader::load()
 	if (panelInterface)
 	{
 		panelInterface->Start();
-		loadEvent->post(piId);
+		loadEvent.post(piId);
 	}
 	else
 	{
@@ -116,12 +109,12 @@ void arc::device::core::PanelInterfaceLoader::unload()
 
 	}
 
-	loadEvent->post(piId);
+	loadEvent.post(piId);
 }
 
 IPanelInterface * arc::device::core::PanelInterfaceLoader::getInterfaceInstance()
 {
-	return new arc::device::interfaces::TestPanel();
+	return new arc::device::interfaces::ElectricalOutletPanel();
 }
 
 int arc::device::core::PanelInterfaceLoader::readPins()

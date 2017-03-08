@@ -245,4 +245,10 @@ ModelManifest.xml
 /Arc.Device/DebounceIn
 /Arc.Device/PinDetect
 /Arc.Device/simple-mbed-client
-/Arc.Device/esp8266-driver/
+/Arc.Device/esp8266-driver/*
+!/Arc.Device/esp8266-driver/ESP8266Interface.h
+!/Arc.Device/esp8266-driver/ESP8266Interface.cpp
+/Arc.Device/esp8266-driver/ESP8266/*
+!/Arc.Device/esp8266-driver/ESP8266/ESP8266.h
+!/Arc.Device/esp8266-driver/ESP8266/ESP8266.cpp
+/Arc.Device/MbedJSONValue
