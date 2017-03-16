@@ -182,7 +182,7 @@ public:
     */
     void attach(Callback<void()> func);
 
-	void configureSoftAP(char* name);
+	void configureSoftAP(char* name, char* pswd);
 	void startServer();
 	void stopServer();
 

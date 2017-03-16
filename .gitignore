@@ -240,11 +240,16 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-/Arc.Device/mbed-os/
+/Arc.Device/mbed-os/*
+/Arc.Device/mbed-os/targets/*
+!/Arc.Device/mbed-os/targets/targets.json
+/Arc.Device/mbed-os/targets/TARGET_STM/*
+/Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/*
+/Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/*
+!/Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/TARGET_ARC_STM32F401RE/*
 /Arc.Device/mbed_settings.pyc
 /Arc.Device/DebounceIn
 /Arc.Device/PinDetect
-/Arc.Device/simple-mbed-client
 /Arc.Device/esp8266-driver/*
 !/Arc.Device/esp8266-driver/ESP8266Interface.h
 !/Arc.Device/esp8266-driver/ESP8266Interface.cpp
@@ -252,3 +257,6 @@ ModelManifest.xml
 !/Arc.Device/esp8266-driver/ESP8266/ESP8266.h
 !/Arc.Device/esp8266-driver/ESP8266/ESP8266.cpp
 /Arc.Device/MbedJSONValue
+/Arc.Device/mbed-client/
+/Arc.Device/pal/
+/Arc.Device/.mbed

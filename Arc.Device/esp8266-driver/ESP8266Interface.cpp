@@ -25,12 +25,16 @@
 
 // ESP8266Interface implementation
 ESP8266Interface::ESP8266Interface(PinName tx, PinName rx, bool debug)
-    : _esp(tx, rx, debug)
-{
-    memset(_ids, 0, sizeof(_ids));
-    memset(_cbs, 0, sizeof(_cbs));
+    : ESP8266Interface::ESP8266Interface(tx, rx, NC, debug)
+{}
 
-    _esp.attach(this, &ESP8266Interface::event);
+ESP8266Interface::ESP8266Interface(PinName tx, PinName rx, PinName rst, bool debug)
+	: _esp(tx, rx, debug), resetPin(rst)
+{
+	memset(_ids, 0, sizeof(_ids));
+	memset(_cbs, 0, sizeof(_cbs));
+
+	_esp.attach(this, &ESP8266Interface::event);
 }
 
 int ESP8266Interface::connect(const char *ssid, const char *pass, nsapi_security_t security,
@@ -48,9 +52,9 @@ int ESP8266Interface::connect()
 {
     _esp.setTimeout(ESP8266_CONNECT_TIMEOUT);
 
-    if (!_esp.startup(1)) {
+    /*if (!_esp.startup(1)) {
         return NSAPI_ERROR_DEVICE_ERROR;
-    }
+    }*/
 
     if (!_esp.dhcp(true, 1)) {
         return NSAPI_ERROR_DHCP_FAILURE;
@@ -134,9 +138,38 @@ struct esp8266_socket {
     SocketAddress addr;
 };
 
-void ESP8266Interface::configureSoftAP(char * name)
+int ESP8266Interface::configureSoftAP(char * name, char* pswd)
 {
-	_esp.configureSoftAP(name);
+	_esp.setTimeout(ESP8266_CONNECT_TIMEOUT);
+
+	if (!_esp.startup(2)) {
+		return NSAPI_ERROR_DEVICE_ERROR;
+	}
+
+	_esp.configureSoftAP(name, pswd);
+
+	return NSAPI_ERROR_OK;
+}
+
+int ESP8266Interface::configureStation()
+{
+	_esp.setTimeout(ESP8266_CONNECT_TIMEOUT);
+
+	if (!_esp.startup(1)) {
+	return NSAPI_ERROR_DEVICE_ERROR;
+	}
+
+	if (!_esp.dhcp(true, 1)) {
+		return NSAPI_ERROR_DHCP_FAILURE;
+	}
+
+	wait(5);
+
+	if (!_esp.getIPAddress()) {
+		return NSAPI_ERROR_DHCP_FAILURE;
+	}
+
+	return NSAPI_ERROR_OK;
 }
 
 void ESP8266Interface::startServer()
@@ -178,6 +211,14 @@ bool ESP8266Interface::close(int id)
 bool ESP8266Interface::isConnected()
 {
 	return _esp.isConnected();
+}
+
+void ESP8266Interface::hardReset()
+{
+	resetPin = 0;
+	wait_ms(100);
+	resetPin = 1;
+	wait_ms(100);
 }
 
 int ESP8266Interface::socket_open(void **handle, nsapi_protocol_t proto)

@@ -6,10 +6,8 @@
 #include "events\Event.h"
 #include "PinDetect.h"
 
-#define TAP_DELAY 30
 #define TAP_INTERVAL 0.5f
-#define HOLD_DELAY 1.0f
-#define HOLD_TICK 0.5f
+#define HOLD_TICK 0.3f
 
 namespace arc
 {
@@ -24,7 +22,7 @@ namespace arc
 				Event<void(void)> *SingleHold;
 				Event<void(void)> *ContinuousHold;
 
-				Button(PinName pin);
+				Button(PinName pin, PinMode mode = PullDown);
 				~Button();
 
 				void Initialize();
@@ -42,15 +40,12 @@ namespace arc
 
 				void onInterruptAssert_ISR(); //transfers callback to the main thread
 				void onInterruptAssert();
-				void onInterruptDeassert_ISR();
-				void onInterruptDeassert();
 				void onInterruptAssertAndHold_ISR();
 				void onInterruptAssertAndHold();
 				void onInterruptDeassertAndHold_ISR();
 				void onInterruptDeassertAndHold();
 				void countTicks_ISR();
 				void countTaps_ISR();
-				void postContinuousHoldEvent();
 				void postTapEvent();
 			};
 		}

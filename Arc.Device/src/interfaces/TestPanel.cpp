@@ -3,7 +3,7 @@
 #include "./../core/TaskManager.h"
 
 arc::device::interfaces::TestPanel::TestPanel()
-	:lightSwitch(D14), btn(USER_BUTTON), service("3311", Tasks->GetQueue())
+	:lightSwitch(D14), btn(USER_BUTTON), service("3311", Tasks.GetQueue())
 {
 	lightSwitch = 0;
 
@@ -32,7 +32,7 @@ void arc::device::interfaces::TestPanel::Stop()
 void arc::device::interfaces::TestPanel::onBtnPress_ISR()
 {
 	lightSwitch = !lightSwitch;
-	Tasks->AddOneTimeTask(callback(this, &TestPanel::onBtnPress));
+	Tasks.AddOneTimeTask(callback(this, &TestPanel::onBtnPress));
 }
 
 void arc::device::interfaces::TestPanel::onBtnPress()

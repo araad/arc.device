@@ -2,11 +2,12 @@
 #include "..\core\TaskManager.h"
 #include "..\utils\LogManager.h"
 #include "PinDetect.h"
+#include "../mbed_config.h"
 
 using namespace arc::device::components;
 
-Button::Button(PinName pin)
-	: _pin(pin)
+Button::Button(PinName pin, PinMode mode)
+	: _pin(pin, mode)
 {
 	_pin.setAssertValue(0);
 	Tap = 0;
@@ -36,12 +37,8 @@ void Button::Initialize()
 {
 	tapCount = 0;
 	tickCount = 0;
-	_pin.mode(PullDown);
-
-	Logger.Trace("pin value: %d", _pin);
 
 	_pin.attach_asserted(this, &Button::onInterruptAssert_ISR);
-	_pin.attach_deasserted(this, &Button::onInterruptDeassert_ISR);
 	_pin.attach_asserted_held(this, &Button::onInterruptAssertAndHold_ISR);
 	_pin.attach_deasserted_held(this, &Button::onInterruptDeassertAndHold_ISR);
 	_pin.setSamplesTillHeld(24); // a hold is recognized after 480ms (24 * 20ms)
@@ -51,7 +48,7 @@ void Button::Initialize()
 
 void Button::onInterruptAssert_ISR()
 {
-	Tasks->AddOneTimeTask(callback(this, &Button::onInterruptAssert));
+	Tasks.AddOneTimeTask(callback(this, &Button::onInterruptAssert));
 }
 
 void Button::onInterruptAssert()
@@ -66,16 +63,6 @@ void Button::onInterruptAssert()
 	timeout.attach(callback(this, &Button::countTaps_ISR), TAP_INTERVAL);
 }
 
-void Button::onInterruptDeassert_ISR()
-{
-	Tasks->AddOneTimeTask(callback(this, &Button::onInterruptDeassert));
-}
-
-void Button::onInterruptDeassert()
-{
-	//Logger.Trace("Button was let go");
-}
-
 void Button::onInterruptAssertAndHold_ISR()
 {
 	if (tapCount > 0) // cancel the tap event if holding
@@ -83,18 +70,17 @@ void Button::onInterruptAssertAndHold_ISR()
 		tapCount = 0;
 		timeout.detach();
 	}
-	Tasks->AddOneTimeTask(callback(this, &Button::onInterruptAssertAndHold));
+	Tasks.AddOneTimeTask(callback(this, &Button::onInterruptAssertAndHold));
 }
 
 void Button::onInterruptAssertAndHold()
 {
-	//Logger.Trace("Button is being held");
 	ticker.attach(callback(this, &Button::countTicks_ISR), HOLD_TICK);
 }
 
 void Button::onInterruptDeassertAndHold_ISR()
 {
-	Tasks->AddOneTimeTask(callback(this, &Button::onInterruptDeassertAndHold));
+	Tasks.AddOneTimeTask(callback(this, &Button::onInterruptDeassertAndHold));
 }
 
 void Button::onInterruptDeassertAndHold()
@@ -115,45 +101,39 @@ void arc::device::components::Button::countTicks_ISR()
 	}
 	else if (tickCount >= 2)
 	{
-		//Logger.Trace("ContinuousHold post Start");
 		if (ContinuousHold)
 		{
 			ContinuousHold->post();
 		}
-		//Logger.Trace("ContinuousHold post Finish");
 	}
 }
 
 void arc::device::components::Button::countTaps_ISR()
 {
-	Tasks->AddOneTimeTask(callback(this, &Button::postTapEvent));
-	//tapCount = 0;
+	Tasks.AddOneTimeTask(callback(this, &Button::postTapEvent));
 }
 
 void arc::device::components::Button::postTapEvent()
 {
-	//Logger.Trace("tap post Start");
-	Logger.Trace("number of taps: %d", tapCount);
 	if (Tap)
 	{
 		Tap->post(tapCount);
 	}
-	//Logger.Trace("tap post Finish");
 	tapCount = 0;
 	timeout.detach();
 }
 
 void arc::device::components::Button::addTapHandler(Callback<void(int)> cb)
 {
-	Tap = new Event<void(int)>(Tasks->GetQueue(), cb);  //calls cb on the Tasks queue (main thread), returns a void accepts an int.
+	Tap = new Event<void(int)>(Tasks.GetQueue(), cb);  //calls cb on the Tasks queue (main thread), returns a void accepts an int.
 }
 
 void arc::device::components::Button::addSingleHoldHandler(Callback<void(void)> cb)
 {
-	SingleHold = new Event<void(void)>(Tasks->GetQueue(), cb);
+	SingleHold = new Event<void(void)>(Tasks.GetQueue(), cb);
 }
 
 void arc::device::components::Button::addContinuousHoldHandler(Callback<void(void)> cb)
 {
-	ContinuousHold = new Event<void(void)>(Tasks->GetQueue(), cb);
+	ContinuousHold = new Event<void(void)>(Tasks.GetQueue(), cb);
 }

@@ -20,6 +20,8 @@ namespace arc
 
 				LogManager();
 				void SetLevel(LogLevel level);
+				void DisplayStackStats(bool val);
+				void DisplayHeapStats(bool val);
 
 				void Error(const char *format, ...);
 				void Warn(const char *format, ...);
@@ -29,11 +31,15 @@ namespace arc
 
 			private:
 				LogLevel level;
+				Serial logPort;
 				Mutex logMutex;
+				Mutex levelMutex;
 				map<osThreadId, char *> namesMap;
 				Mutex mapMutex;
+				bool displayStack;
+				bool displayHeap;
 
-				void log(const char *format, ...);
+				void log(const char* level, const char *format, va_list args);
 				int getThreadInfo(osThreadInfo info);
 				char* getThreadName();
 			};

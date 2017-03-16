@@ -13,12 +13,12 @@ namespace arc
 			class TaskManager
 			{
 			public:
-				TaskManager(EventQueue* queue);
+				TaskManager();
 
 				int AddRecurringTask(const char* name, Callback<void()> cb, int period);
 
 				void AddDelayedTask(Callback<void()> cb, int delay);
-				void AddDelayedTask(Callback<void(bool)> cb, int delay);
+				void AddDelayedTask(Callback<void(bool)> cb, bool val, int delay);
 				void AddDelayedTask(Callback<void(int)> cb, int delay);
 				void AddDelayedTask(Callback<void(char*)> cb, int delay);
 
@@ -34,11 +34,10 @@ namespace arc
 				void Start();
 				EventQueue* GetQueue();
 			private:
-				EventQueue *queue;
-				Mutex queueMutex;
+				EventQueue queue;
 			};
 		}
 	}
 }
 
-extern arc::device::core::TaskManager* Tasks;
+extern arc::device::core::TaskManager Tasks;

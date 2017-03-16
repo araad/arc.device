@@ -3,21 +3,26 @@
 
 arc::device::net::ClientConnection::ClientConnection()
 {
-	Logger.Trace("ClientConnection - ctor()");
+	Logger.Trace("ClientConnection - ctor() - begin");
 	registered = false;
 
 	interfaceObject = 0;
 	securityObject = 0;
-	deviceObject = 0;
+
+	Logger.Trace("ClientConnection - ctor() - end");
 }
 
-void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
+void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler, Event<void()>* clientRegisteredEvent)
 {
 	Logger.Trace("ClientConnection - Start() begin");
 
-	interfaceObject = M2MInterfaceFactory::create_interface(*this, MBED_ENDPOINT_NAME, "test", 60, 5684, MBED_DOMAIN, M2MInterface::TCP);
+	clientRegisteredEv = clientRegisteredEvent;
 
-	Logger.Trace("ClientConnection - Start() interface created");
+	if (!interfaceObject)
+	{
+		interfaceObject = M2MInterfaceFactory::create_interface(*this, MBED_ENDPOINT_NAME, "test", 60, 5684, MBED_DOMAIN, M2MInterface::TCP);
+		Logger.Trace("ClientConnection - Start() interface created");
+	}
 
 	if (!securityObject)
 	{
@@ -31,6 +36,7 @@ void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 			securityObject->set_resource_value(M2MSecurity::PublicKey, CERT, sizeof(CERT));
 			securityObject->set_resource_value(M2MSecurity::Secretkey, KEY, sizeof(KEY));
 		}
+		Logger.Trace("ClientConnection - Start() security created");
 	}
 
 	if (!deviceObject)
@@ -43,14 +49,18 @@ void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 			deviceObject->create_resource(M2MDevice::ModelNumber, "Model_Number");
 			deviceObject->create_resource(M2MDevice::SerialNumber, "Serial_Number");
 		}
+		Logger.Trace("ClientConnection - Start() device created");
 	}
 
 	if (interfaceObject && securityObject && deviceObject)
 	{
 		objectList.push_back(deviceObject);
 
+		Logger.Trace("ClientConnection - Start() setting connection handler...");
 		interfaceObject->set_platform_network_handler((void*)connHandler);
+		Logger.Trace("ClientConnection - Start() registering objects...");
 		interfaceObject->register_object(securityObject, objectList);
+		Logger.Trace("ClientConnection - Start() clearing list of objects...");
 		objectList.clear();
 	}
 	else
@@ -60,38 +70,39 @@ void arc::device::net::ClientConnection::Start(NetworkInterface * connHandler)
 	Logger.Trace("ClientConnection - Start() end");
 }
 
-void arc::device::net::ClientConnection::Stop()
-{
-	Logger.Trace("Stopping ClientConnection");
-	if (interfaceObject)
-	{
-		delete interfaceObject;
-		interfaceObject = 0;
-	}
-	if (securityObject)
-	{
-		delete securityObject;
-		securityObject = 0;
-	}
-
-	for (int i = 0; i < regObjects.size(); i++)
-	{
-		objectList.push_back(regObjects[i]);
-	}
-}
-
-void arc::device::net::ClientConnection::Unregister()
-{
-	if (interfaceObject)
-	{
-		interfaceObject->unregister_object();
-		registered = false;
-	}
-}
+//void arc::device::net::ClientConnection::Stop()
+//{
+//	Logger.Trace("ClientConnection - Stop() - begin");
+//	//if (interfaceObject)
+//	//{
+//	//	delete interfaceObject;
+//	//	interfaceObject = 0;
+//	//}
+//	if (securityObject)
+//	{
+//		delete securityObject;
+//		securityObject = 0;
+//	}
+//
+//	for (int i = 0; i < regObjects.size(); i++)
+//	{
+//		objectList.push_back(regObjects[i]);
+//	}
+//	Logger.Trace("ClientConnection - Stop() - end");
+//}
+//
+//void arc::device::net::ClientConnection::Unregister()
+//{
+//	if (interfaceObject)
+//	{
+//		interfaceObject->unregister_object();
+//		registered = false;
+//	}
+//}
 
 void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)
 {
-	Logger.Trace("ClientConnection - UpdateRegistration()");
+	Logger.Trace("ClientConnection - UpdateRegistration() - begin");
 
 	regObjectsMutex.lock();
 	int index = -1;
@@ -122,6 +133,8 @@ void arc::device::net::ClientConnection::UpdateRegistration(M2MObject *object)
 		objectList.push_back(object);
 	}
 	regMutex.unlock();
+
+	Logger.Trace("ClientConnection - UpdateRegistration() - end");
 }
 
 M2MObject * arc::device::net::ClientConnection::GetRegisteredObject(char * name)
@@ -141,6 +154,7 @@ M2MObject * arc::device::net::ClientConnection::GetRegisteredObject(char * name)
 	}
 	regObjectsMutex.unlock();
 
+	Logger.Trace("ClientConnection - GetRegisteredObject() object not found");
 	return NULL;
 }
 
@@ -152,7 +166,7 @@ void arc::device::net::ClientConnection::bootstrap_done(M2MSecurity * server_obj
 void arc::device::net::ClientConnection::object_registered(M2MSecurity * security_object, const M2MServer & server_object)
 {
 	Logger.mapThreadName("MbedClient");
-	Logger.Trace("Object Registered");
+	Logger.Trace("ClientConnection - object_registered()");
 	regMutex.lock();
 	registered = true;
 	regMutex.unlock();
@@ -162,16 +176,21 @@ void arc::device::net::ClientConnection::object_registered(M2MSecurity * securit
 		interfaceObject->update_registration(securityObject, objectList);
 		objectList.clear();
 	}
+
+	if (clientRegisteredEv)
+	{
+		clientRegisteredEv->post();
+	}
 }
 
 void arc::device::net::ClientConnection::object_unregistered(M2MSecurity * server_object)
 {
-	Logger.Trace("Object Unregistered");
+	Logger.Trace("ClientConnection - object_unregistered()");
 }
 
 void arc::device::net::ClientConnection::registration_updated(M2MSecurity * security_object, const M2MServer & server_object)
 {
-	//Logger.Trace("Registration Updated");
+	Logger.Trace("ClientConnection - registration_updated()");
 }
 
 void arc::device::net::ClientConnection::error(M2MInterface::Error error)
@@ -227,7 +246,7 @@ void arc::device::net::ClientConnection::error(M2MInterface::Error error)
 
 void arc::device::net::ClientConnection::value_updated(M2MBase * base, M2MBase::BaseType type)
 {
-	Logger.Trace("Value Updated: %s", base->uri_path().c_str());
+	Logger.Trace("Value Updated: %s", base->uri_path());
 	M2MResource* resource = NULL;
 	M2MResourceInstance* res_instance = NULL;
 	M2MObjectInstance* obj_instance = NULL;
@@ -253,7 +272,7 @@ void arc::device::net::ClientConnection::value_updated(M2MBase * base, M2MBase::
 			object_instance_id = resource->object_instance_id();
 			resource_name = resource->name();
 			Logger.Trace("Value updated, object name %s, object instance id %d, resource name %s",
-				resource->object_name().c_str(), resource->object_instance_id(), resource->name().c_str());
+				resource->object_name(), resource->object_instance_id(), resource->name());
 		}
 								break;
 		case M2MBase::ResourceInstance: {

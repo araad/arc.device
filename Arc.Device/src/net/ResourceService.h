@@ -28,8 +28,8 @@ namespace arc
 				ResourceService(char* name, EventQueue* queue);
 				~ResourceService();
 
-				void AddResource(const char* name, char* category, ResourceType type, void* value, void* cb = NULL);
-				void AddMethod(const char* name, char* category, ResourceType type, void* cb);
+				void AddResource(const char* name, const char* category, ResourceType type, void* value, void* cb = NULL);
+				void AddMethod(const char* name, const char* category, ResourceType type, void* cb);
 				void updateValue(const char* name, void* value);
 			private:
 				M2MObject *object;

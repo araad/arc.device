@@ -1,73 +1,70 @@
 #include "Device.h"
 #include "../utils/LogManager.h"
 
-#ifdef MBED_CONFIG_INTELLISENSE
-#include "../BUILD/NUCLEO_F401RE/GCC_ARM/mbed_config.h"
-#endif
+#include "../mbed_config.h"
 
 using namespace arc::device::core;
 using namespace arc::device::net;
 
-TaskManager* Tasks;
-ConnectionManager* Connection;
+TaskManager Tasks;
+ConnectionManager Connection;
+DigitalOut mainsSwitch(MBED_CONF_APP_DEVICE_MAINS_SWITCH);
+
+static const char* infoKey = "info";
+static const char* timeKey = "time";
+static const char* sys_hangKey = "sys_hang";
+static const char* simKey = "sim";
+static const char* pi_idKey = "pi_id";
 
 extern "C" void __NVIC_SystemReset();
 
 void heartbeat() {
-	Logger.Trace("heartbeat");
+	Logger.Trace("Heartbeat");
 }
 
 arc::device::core::Device::Device()
 	: aux(MBED_CONF_APP_DEVICE_AUX),
-	service("dev", &queue),
-	btn(MBED_CONF_APP_DEVICE_BUTTON),
+	service("dev", Tasks.GetQueue()),
+	btn(MBED_CONF_APP_DEVICE_BUTTON, (PinMode)MBED_CONF_APP_DEVICE_BUTTON_MODE),
+	piLoader(callback(this, &Device::onPanelInterfaceLoaded)),
+	statusLed(MBED_CONF_APP_DEVICE_STATUS_LED),
 	initTask("DeviceInit", callback(this, &Device::initialize), false)
 {
-	Logger.Trace("Device - ctor() 1");
-
 	initTask.run();
-}
-
-arc::device::core::Device::~Device()
-{
-	delete piLoader;
 }
 
 void arc::device::core::Device::initialize()
 {
-	Tasks = new TaskManager(&queue);
-	Tasks->AddRecurringTask("Heartbeat", callback(&heartbeat), 2000);
-	Connection = new ConnectionManager();
+	Tasks.AddRecurringTask("Heartbeat", callback(&heartbeat), 2000);
+
+	Connection.SetStatusLed(&statusLed);
 
 	btn.Initialize();
 	btn.addTapHandler(callback(this, &Device::onBtnTap));
 	btn.addSingleHoldHandler(callback(this, &Device::onBtnHold));
 
+	mainsSwitch = 1;
+
 	// Start the connection
 	initTask.state = core::TaskState::ASLEEP;
-	Tasks->AddOneTimeTask(callback(Connection, &ConnectionManager::StartConnection));
+	Tasks.AddOneTimeTask(callback(&Connection, &ConnectionManager::StartConnection));
 	initTask.state = core::TaskState::ALIVE;
 
-	// Start the panelInterface loader
-	initTask.state = core::TaskState::ASLEEP;
-	piLoader = new PanelInterfaceLoader(callback(this, &Device::onPanelInterfaceLoaded));
-	initTask.state = core::TaskState::ALIVE;
+	int panelInterfaceId = piLoader.getPanelInterfaceId();
+	service.AddResource(pi_idKey, infoKey, ResourceService::INTEGER, &panelInterfaceId);
 
 	Callback<void(int)> time_cb = callback(this, &Device::onSetCurrentTime);
-	service.AddMethod("time", "info", ResourceService::INTEGER, &time_cb);
+	service.AddMethod(timeKey, infoKey, ResourceService::INTEGER, &time_cb);
 
 	Callback<void(bool)> sysHangSim_cb = callback(this, &Device::onSysHangSim);
-	service.AddMethod("sys_hang", "sim", ResourceService::BOOLEAN, &sysHangSim_cb);
+	service.AddMethod(sys_hangKey, simKey, ResourceService::BOOLEAN, &sysHangSim_cb);
 
-	int panelInterfaceId = piLoader->getPanelInterfaceId();
-	service.AddResource("pi_id", "info", ResourceService::INTEGER, &panelInterfaceId);
-
-	/*bool aux_val = aux.read();
+	bool aux_val = aux.read();
 	Callback<void(bool)> aux_cb = callback(this, &Device::onSetAux);
-	service.AddResource("aux", "aux", ResourceService::BOOLEAN, &aux_val, &aux_cb);*/
+	service.AddResource("aux", "aux", ResourceService::BOOLEAN, &aux_val, &aux_cb);
 
 	initTask.state = TaskState::ASLEEP;
-	Tasks->Start();
+	Tasks.Start();
 }
 
 void arc::device::core::Device::onSetCurrentTime(int value)
@@ -79,7 +76,7 @@ void arc::device::core::Device::onSetCurrentTime(int value)
 
 void arc::device::core::Device::onPanelInterfaceLoaded(int piId)
 {
-	service.updateValue("pi_id", &piId);
+	service.updateValue(pi_idKey, &piId);
 }
 
 void arc::device::core::Device::onSetAux(bool value)
@@ -96,7 +93,7 @@ void arc::device::core::Device::onBtnTap(int tapCount)
 
 void arc::device::core::Device::onBtnHold()
 {
-	Connection->StartDiscovery();
+	Connection.StartDiscovery();
 }
 
 void do_SysHangSim()

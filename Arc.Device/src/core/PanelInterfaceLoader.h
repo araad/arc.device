@@ -3,7 +3,6 @@
 #include "mbed.h"
 #include "PinDetect.h"
 #include "IPanelInterface.h"
-#include "DebounceIn.h"
 
 namespace arc
 {

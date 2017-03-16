@@ -4,45 +4,30 @@
       "help": "options are ETHERNET,WIFI_ESP8266,MESH_LOWPAN_ND,MESH_THREAD",
       "value": "WIFI_ESP8266"
     },
-    "esp8266-tx": {
-      "help": "Pin used as TX (connects to ESP8266 RX)",
-      "value": "D10"
-    },
-    "esp8266-rx": {
-      "help": "Pin used as RX (connects to ESP8266 TX)",
-      "value": "D2"
-    },
-    "esp8266-reset": {
-      "help": "Pin used as Hard Reset",
-      "value": "D8"
-    },
-    "esp8266-ssid": {
-      "value": "\"SSID\""
-    },
-    "esp8266-password": {
-      "value": "\"PSWD\""
-    },
-    "esp8266-debug": {
-      "value": false
-    },
-    "device-button": {
-      "value": "USER_BUTTON"
-    },
-    "device-aux": {
-      "value": "D9"
-    },
-    "panel-interface-bus-0": {
-      "value": "D3"
-    },
-    "panel-interface-bus-1": {
-      "value": "D4"
-    },
-    "panel-interface-bus-2": {
-      "value": "D5"
-    },
-    "panel-interface-bus-3": {
-      "value": "D6"
-    }
+
+    "log-port-tx": "PA_11",
+    "log-port-rx": "PA_12",
+
+    "esp8266-debug": false,
+    "esp8266-tx": "PA_9",
+    "esp8266-rx": "PA_10",
+    "esp8266-reset": "NC",
+
+    "device-button": "NC",
+    "device-button-mode": 2,
+    "device-aux": "NC",
+    "device-status-led": "NC",
+    "device-mains-switch": "NC",
+
+    "panel-interface-bus-0": "NC",
+    "panel-interface-bus-1": "NC",
+    "panel-interface-bus-2": "NC",
+    "panel-interface-bus-3": "NC",
+
+    "electrical-outlet-plug-a-switch": "NC",
+    "electrical-outlet-plug-a-sensor": "NC",
+    "electrical-outlet-plug-b-switch": "NC",
+    "electrical-outlet-plug-b-sensor": "NC"
   },
   "macros": [
     "MBED_STACK_STATS_ENABLED=1",
@@ -54,6 +39,40 @@
   "target_overrides": {
     "*": {
       "target.features_add": [ "IPV4", "COMMON_PAL" ]
+    },
+    "NUCLEO_F401RE": {
+
+      "esp8266-reset": "PB_6",
+
+      "device-button": "PC_13",
+      "device-aux": "PC_7",
+      "device-status-led": "PA_5",
+
+      "panel-interface-bus-0": "PB_3",
+      "panel-interface-bus-1": "PB_5",
+      "panel-interface-bus-2": "PB_4",
+      "panel-interface-bus-3": "PB_10",
+
+      "electrical-outlet-plug-b-switch": "PA_0",
+      "electrical-outlet-plug-b-sensor": "PA_1"
+    },
+    "ARC_STM32F401RE": {
+
+      "esp8266-reset": "PC_11",
+
+      "device-button": "PC_4",
+      "device-button-mode": 1,
+      "device-aux": "PC_5",
+      "device-status-led": "PC_3",
+      "device-mains-switch": "PB_0",
+
+      "panel-interface-bus-0": "PB_7",
+      "panel-interface-bus-1": "PB_6",
+      "panel-interface-bus-2": "PB_5",
+      "panel-interface-bus-3": "PB_4",
+
+      "electrical-outlet-plug-b-switch": "PB_8",
+      "electrical-outlet-plug-b-sensor": "PA_6"
     }
   }
 }

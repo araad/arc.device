@@ -1,9 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -25,7 +33,17 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -38,11 +56,17 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <!--Import Project="$(MSBuildThisFileDirectory)\Microsoft.cpp.Linux.targets" /-->
+  <!-- Import Project="$(MSBuildThisFileDirectory)\Microsoft.cpp.Linux.targets" / -->
   <!-- To Enable linux debugger -->
   <PropertyGroup>
     <UseDefaultDebuggersPropertyPageSchemas>false</UseDefaultDebuggersPropertyPageSchemas>
@@ -85,11 +109,11 @@
     <ClCompile Include="esp8266-driver\ESP8266\ESP8266.cpp" />
     <ClCompile Include="src\components\Button.cpp" />
     <ClCompile Include="src\components\CurrentSensor.cpp" />
+    <ClCompile Include="src\components\Led.cpp" />
     <ClCompile Include="src\components\Sensor.cpp" />
     <ClCompile Include="src\core\Device.cpp" />
     <ClCompile Include="src\core\PanelInterfaceLoader.cpp" />
     <ClCompile Include="src\core\SystemController.cpp" />
-    <ClCompile Include="src\core\Task.cpp" />
     <ClCompile Include="src\core\TaskManager.cpp" />
     <ClCompile Include="src\interfaces\ElectricalOutletPanel.cpp" />
     <ClCompile Include="src\interfaces\TestPanel.cpp" />
@@ -99,13 +123,13 @@
     <ClCompile Include="src\net\NetworkDiscovery.cpp" />
     <ClCompile Include="src\net\ResourceService.cpp" />
     <ClCompile Include="src\utils\LogManager.cpp" />
-    <ClCompile Include="src\utils\StringHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="esp8266-driver\ESP8266Interface.h" />
     <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h" />
     <ClInclude Include="src\components\Button.h" />
     <ClInclude Include="src\components\CurrentSensor.h" />
+    <ClInclude Include="src\components\Led.h" />
     <ClInclude Include="src\components\Sensor.h" />
     <ClInclude Include="src\core\Device.h" />
     <ClInclude Include="src\core\IPanelInterface.h" />
@@ -115,36 +139,92 @@
     <ClInclude Include="src\core\TaskManager.h" />
     <ClInclude Include="src\interfaces\ElectricalOutletPanel.h" />
     <ClInclude Include="src\interfaces\TestPanel.h" />
+    <ClInclude Include="src\mbed_config.h" />
     <ClInclude Include="src\net\ClientConnection.h" />
     <ClInclude Include="src\net\ConnectionManager.h" />
     <ClInclude Include="src\net\IResourceService.h" />
     <ClInclude Include="src\net\NetworkDiscovery.h" />
     <ClInclude Include="src\net\ResourceService.h" />
     <ClInclude Include="src\utils\LogManager.h" />
-    <ClInclude Include="src\utils\StringHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mbed_app.json" />
   </ItemGroup>
   <!-- To Enable linux debugger End -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <PropertyGroup Condition="'$(Platform)'=='Win32'">
     <OCDDebuggerExecutable>$(ProgramFiles)\GNU Tools ARM Embedded\6.2 2016q4\bin\arm-none-eabi-gdb.exe</OCDDebuggerExecutable>
     <DebuggerFlavor>OCDDebugger</DebuggerFlavor>
-    <OCDDebugBinary>$(ProjectDir)BUILD\NUCLEO_F401RE\GCC_ARM\Arc.Device.elf</OCDDebugBinary>
+    <OCDDebugBinary>$(ProjectDir)$(Configuration)\NUCLEO_F401RE\Arc.Device.elf</OCDDebugBinary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='ARM'">
+    <OCDDebuggerExecutable>$(ProgramFiles)\GNU Tools ARM Embedded\6.2 2016q4\bin\arm-none-eabi-gdb.exe</OCDDebuggerExecutable>
+    <DebuggerFlavor>OCDDebugger</DebuggerFlavor>
+    <OCDDebugBinary>$(ProjectDir)$(Configuration)\ARC_STM32F401RE\Arc.Device.elf</OCDDebugBinary>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>mbed compile --profile build_debug.json</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_INTELLISENSE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
-    <NMakeIncludeSearchPath>$(ProjectDir)MbedJSONValue;$(ProjectDir)simple-mbed-client\mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_NUCLEO_F401RE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
-    <OutDir>$(SolutionDir)BUILD\</OutDir>
-    <IntDir>BUILD</IntDir>
+    <NMakeBuildCommandLine>mbed compile --profile build_debug.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE
+copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin
+copy $(Configuration)\NUCLEO_F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_debug.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <NMakeBuildCommandLine>mbed compile --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_debug.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC;RTC_LSI</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <NMakeBuildCommandLine>
-    </NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>mbed compile --profile build_small.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE
+copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE
+copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeReBuildCommandLine>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <NMakeBuildCommandLine>mbed compile --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
+
+copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC</NMakePreprocessorDefinitions>
+    <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <NMakeOutput>
+    </NMakeOutput>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <BuildLog>
-      <Path>BUILD\$(MSBuildProjectName).log</Path>
+      <Path>$(Configuration)\$(MSBuildProjectName).ARC_STM32F401RE.log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <BuildLog>
+      <Path>$(Configuration)\$(MSBuildProjectName).ARC_STM32F401RE.log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <BuildLog>
+      <Path>$(Configuration)\$(MSBuildProjectName).ARC_STM32F401RE.log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path>$(Configuration)\$(MSBuildProjectName).NUCLEO_F401RE.log</Path>
     </BuildLog>
   </ItemDefinitionGroup>
   <ImportGroup Label="ExtensionTargets">

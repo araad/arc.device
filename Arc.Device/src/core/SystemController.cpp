@@ -2,16 +2,19 @@
 #include "../utils/LogManager.h"
 #include "Task.h"
 
+static const char* resetTrace = "SystemController - system was reset by watchdog";
+
 vector<arc::device::core::TaskBase*> arc::device::core::TaskBase::instances;
 
 arc::device::core::SystemController::SystemController()
 	: th(osPriorityRealtime, 1280)
 {
-	Logger.Trace("SystemController - ctor()");
+	Logger.Trace("SystemController - ctor() - begin");
 
 	initWatchdog();
 
 	th.start(callback(&queue, &EventQueue::dispatch_forever));
+	Logger.Trace("SystemController - ctor() - end");
 }
 
 arc::device::core::SystemController::~SystemController()
@@ -26,14 +29,14 @@ void arc::device::core::SystemController::initWatchdog()
 	if (result)
 	{
 		// TODO: read recorded failure message and notify listeners
-		Logger.Trace("SystemController - system was reset by watchdog");
+		Logger.Trace(resetTrace);
 	}
 
-	IWDG->KR = 0x5555; //Disable write protection of IWDG registers
-	IWDG->KR = 0xAAAA;    //Reload IWDG
-	IWDG->KR = 0xCCCC;    //Start IWDG
+	//IWDG->KR = 0x5555; //Disable write protection of IWDG registers
+	//IWDG->KR = 0xAAAA;    //Reload IWDG
+	//IWDG->KR = 0xCCCC;    //Start IWDG
 
-	queue.call_every(500, callback(this, &SystemController::kickWatchdog));
+	//queue.call_every(500, callback(this, &SystemController::kickWatchdog));
 }
 
 bool arc::device::core::SystemController::getAndClearWatchdogReset()

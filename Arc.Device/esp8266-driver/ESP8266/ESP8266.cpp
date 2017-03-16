@@ -316,7 +316,7 @@ void ESP8266::attach(Callback<void()> func)
 	_serial.attach(func);
 }
 
-void ESP8266::configureSoftAP(char* name)
+void ESP8266::configureSoftAP(char* name, char* pswd)
 {
 	_parser.send("AT+CWSAP=\"%s\",\"\",1,0", name);
 	_parser.recv("OK");

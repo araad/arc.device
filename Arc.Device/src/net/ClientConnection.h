@@ -22,9 +22,9 @@ namespace arc
 			public:
 				ClientConnection();
 
-				void Start(NetworkInterface* connHandler);
-				void Stop();
-				void Unregister();
+				void Start(NetworkInterface* connHandler, Event<void()>* clientRegisteredEvent);
+				//void Stop();
+				//void Unregister();
 				void UpdateRegistration(M2MObject *object);
 				M2MObject* GetRegisteredObject(char* name);
 			private:
@@ -36,6 +36,7 @@ namespace arc
 				rtos::Mutex regObjectsMutex;
 				bool registered;
 				rtos::Mutex regMutex;
+				Event<void()>* clientRegisteredEv;
 
 				// Inherited via M2MInterfaceObserver
 				virtual void bootstrap_done(M2MSecurity * server_object) override;
@@ -49,4 +50,4 @@ namespace arc
 	}
 }
 
-extern arc::device::net::ClientConnection* Client;
+extern arc::device::net::ClientConnection Client;

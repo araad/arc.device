@@ -4,12 +4,13 @@
 
 using namespace arc::device::components;
 
-CurrentSensor::CurrentSensor(PinName pin, int min, int max, int period, bool extARef)
-	: Sensor(pin, min, max, period, extARef),
-	readInputThread(osPriorityNormal, 512)
+CurrentSensor::CurrentSensor(PinName pin, int min, int max, int samplePeriod, int readPeriod, bool extARef)
+	: Sensor(pin, min, max, samplePeriod, extARef),
+	readInputThread(osPriorityNormal, 1024)
 {
 	CurrentChange = 0;
 	current = 0;
+	this->readPeriod = readPeriod;
 }
 
 arc::device::components::CurrentSensor::~CurrentSensor()
@@ -24,26 +25,32 @@ void CurrentSensor::Initialize()
 {
 	Sensor::Initialize();
 
-	readInputThread.start(callback(this, &CurrentSensor::readInputThreadStarter));
+	//queue.call_every(period, callback(this, &CurrentSensor::sampleInput_Task));
+	//readInputThread.start(callback(&queue, &EventQueue::dispatch_forever));
+	readInputThread.start(callback(this, &CurrentSensor::sampleInput_Task));
 
-	Tasks->AddRecurringTask("CurrentSensor", callback(this, &CurrentSensor::readCurrent), 5000);
+	Tasks.AddRecurringTask("CurrentSensor", callback(this, &CurrentSensor::readCurrent), readPeriod);
 }
 
 void arc::device::components::CurrentSensor::addCurrentChangeHandler(Callback<void()> cb)
 {
-	CurrentChange = new Event<void()>(Tasks->GetQueue(), cb);
-}
-
-void CurrentSensor::readInputThreadStarter() {
-	this->readInput_Task();
-	while (1) {}
+	CurrentChange = new Event<void()>(Tasks.GetQueue(), cb);
 }
 
 //collects samples from the sensor 
-void CurrentSensor::readInput_Task() {
+void CurrentSensor::sampleInput_Task() {
+	/*Logger.mapThreadName("SensorB");
+	Logger.Trace("starting readinput task");*/
+	//int readinputcount = 0;
 	while (1) {
-		this->readInput();
-		wait_ms(1);
+		/*if (period >= 1000 || readinputcount++ > (1000/period))
+		{
+			readinputcount = 0;
+			Logger.Trace("reading...");
+		}*/
+		this->sampleInput();
+		//wait_us(100);
+		wait_ms(period);
 	}
 }
 
@@ -51,6 +58,7 @@ void CurrentSensor::readInput_Task() {
 void CurrentSensor::readCurrent()
 {
 	int value = GetValue();
+	Logger.Trace("Current: %d", value);
 	if (current != value)
 	{
 		current = value;

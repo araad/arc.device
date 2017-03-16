@@ -32,6 +32,7 @@ namespace arc
 				void scanNetworks();
 				void listen();
 				void sendAPList();
+				void sendDeviceInfo();
 				void receiveAPCredentials(string request);
 			};
 		}

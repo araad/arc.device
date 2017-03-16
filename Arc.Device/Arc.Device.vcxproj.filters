@@ -14,9 +14,6 @@
     <ClCompile Include="src\core\PanelInterfaceLoader.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\StringHelper.cpp">
-      <Filter>utils</Filter>
-    </ClCompile>
     <ClCompile Include="src\net\ConnectionManager.cpp">
       <Filter>net</Filter>
     </ClCompile>
@@ -35,9 +32,6 @@
     <ClCompile Include="src\core\SystemController.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\Task.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="esp8266-driver\ESP8266Interface.cpp">
       <Filter>esp</Filter>
     </ClCompile>
@@ -54,6 +48,9 @@
       <Filter>components</Filter>
     </ClCompile>
     <ClCompile Include="src\components\CurrentSensor.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\Led.cpp">
       <Filter>components</Filter>
     </ClCompile>
   </ItemGroup>
@@ -95,9 +92,6 @@
     </ClInclude>
     <ClInclude Include="src\core\IPanelInterface.h">
       <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\StringHelper.h">
-      <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="src\net\ConnectionManager.h">
       <Filter>net</Filter>
@@ -141,5 +135,12 @@
     <ClInclude Include="src\components\CurrentSensor.h">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="src\components\Led.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mbed_config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mbed_app.json" />
   </ItemGroup>
 </Project>

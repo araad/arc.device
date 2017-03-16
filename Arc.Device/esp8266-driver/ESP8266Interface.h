@@ -38,6 +38,8 @@ public:
      */
     ESP8266Interface(PinName tx, PinName rx, bool debug = false);
 
+	ESP8266Interface(PinName tx, PinName rx, PinName rst, bool debug = false);
+
     /** Start the interface
      *
      *  Attempts to connect to a WiFi network. Requires ssid and passphrase to be set.
@@ -149,7 +151,8 @@ public:
      */
     using NetworkInterface::add_dns_server;
 
-	void configureSoftAP(char* name);
+	int configureSoftAP(char* name, char* pswd);
+	int configureStation();
 	void startServer();
 	void stopServer();
 	bool startup(int mode);
@@ -158,6 +161,7 @@ public:
 	int32_t recv(int id, void *data, uint32_t amount);
 	bool close(int id);
 	bool isConnected();
+	void hardReset();
 
 protected:
     /** Open a socket
@@ -270,6 +274,7 @@ protected:
 private:
     ESP8266 _esp;
     bool _ids[ESP8266_SOCKET_COUNT];
+	DigitalOut resetPin;
 
     char ap_ssid[33]; /* 32 is what 802.11 defines as longest possible name; +1 for the \0 */
     nsapi_security_t ap_sec;

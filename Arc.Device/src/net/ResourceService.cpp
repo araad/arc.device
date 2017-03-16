@@ -6,15 +6,9 @@ using namespace arc::device::net;
 
 arc::device::net::ResourceService::ResourceService(char * name, EventQueue* queue)
 {
-	if (Client)
-	{
-		object = Client->GetRegisteredObject(name);
-		if (!object)
-		{
-			object = M2MInterfaceFactory::create_object(name);
-		}
-	}
-	else
+	Logger.Trace("ResourceService - ctor() - begin");
+	object = Client.GetRegisteredObject(name);
+	if (!object)
 	{
 		object = M2MInterfaceFactory::create_object(name);
 	}
@@ -27,6 +21,8 @@ arc::device::net::ResourceService::ResourceService(char * name, EventQueue* queu
 	}
 
 	this->queue = queue;
+
+	Logger.Trace("ResourceService - ctor() - end");
 }
 
 arc::device::net::ResourceService::~ResourceService()
@@ -34,9 +30,9 @@ arc::device::net::ResourceService::~ResourceService()
 	Logger.Trace("ResourceService - dtor()");
 }
 
-void arc::device::net::ResourceService::AddResource(const char* name, char* category, ResourceType type, void* value, void* cb)
+void arc::device::net::ResourceService::AddResource(const char* name, const char* category, ResourceType type, void* value, void* cb)
 {
-	Logger.Trace("ResourceService - AddResource(): %s", name);
+	Logger.Trace("ResourceService - AddResource(): %s - begin", name);
 	if (instance)
 	{
 		char buffer[20];
@@ -76,23 +72,26 @@ void arc::device::net::ResourceService::AddResource(const char* name, char* cate
 		{
 			res->set_operation(M2MBase::GET_ALLOWED);
 		}
-		Client->UpdateRegistration(object);
+		Client.UpdateRegistration(object);
 	}
+
+	Logger.Trace("ResourceService - AddResource(): %s - end", name);
 }
 
-void arc::device::net::ResourceService::AddMethod(const char * name, char * category, ResourceType type, void* cb)
+void arc::device::net::ResourceService::AddMethod(const char * name, const char * category, ResourceType type, void* cb)
 {
-	Logger.Trace("ResourceService - AddMethod(): %s", name);
+	Logger.Trace("ResourceService - AddMethod(): %s - begin", name);
 	M2MResource* res = instance->create_dynamic_resource(name, category, (M2MResource::ResourceType)type, true);
 	res->set_operation(M2MBase::POST_ALLOWED);
 	res->set_execute_function(execute_callback(this, &ResourceService::onMethodExecute));
 	cbMap[string(name)] = cb;
-	Client->UpdateRegistration(object);
+	Client.UpdateRegistration(object);
+	Logger.Trace("ResourceService - AddMethod(): %s - end", name);
 }
 
 void arc::device::net::ResourceService::updateValue(const char * name, void * value)
 {
-	Logger.Trace("ResourceService - updateValue(): %s", name);
+	Logger.Trace("ResourceService - updateValue(): %s - begin", name);
 	M2MResource* res = instance->resource(name);
 	ResourceType type = (ResourceType)res->resource_instance_type();
 	if (res)
@@ -124,11 +123,13 @@ void arc::device::net::ResourceService::updateValue(const char * name, void * va
 	{
 		Logger.Warn("ResourceService - updateValue(): resource not under observation");
 	}
+
+	Logger.Trace("ResourceService - updateValue(): %s - end", name);
 }
 
 void arc::device::net::ResourceService::onValueUpdated(const char * name)
 {
-	Logger.Trace("ResourceService - onValueUpdated(): %s", name);
+	Logger.Trace("ResourceService - onValueUpdated(): %s - begin", name);
 	M2MResource* res = instance->resource(name);
 	ResourceType type = (ResourceType)res->resource_instance_type();
 	switch (type)
@@ -161,11 +162,13 @@ void arc::device::net::ResourceService::onValueUpdated(const char * name)
 	default:
 		break;
 	}
+
+	Logger.Trace("ResourceService - onValueUpdated(): %s - end", name);
 }
 
 void arc::device::net::ResourceService::onMethodExecute(void* argument)
 {
-	Logger.Trace("ResourceService - onMethodExecute()");
+	Logger.Trace("ResourceService - onMethodExecute() - begin");
 	if (argument) {
 		M2MResource::M2MExecuteParameter* param = (M2MResource::M2MExecuteParameter*)argument;
 		String resource_name = param->get_argument_resource_name();
@@ -195,4 +198,6 @@ void arc::device::net::ResourceService::onMethodExecute(void* argument)
 			break;
 		}
 	}
+
+	Logger.Trace("ResourceService - onMethodExecute() - end");
 }

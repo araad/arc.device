@@ -9,6 +9,11 @@
 #include <string>
 #include "Task.h"
 #include "../components/Button.h"
+#include "../components/Led.h"
+
+#ifdef MBED_CONFIG_INTELLISENSE
+#include "../BUILD/NUCLEO_F401RE/GCC_ARM/mbed_config.h"
+#endif
 
 using namespace rtos;
 using namespace arc::device::components;
@@ -23,15 +28,14 @@ namespace arc
 			{
 			public:
 				Device();
-				~Device();
 			private:
-				PanelInterfaceLoader *piLoader;
+				PanelInterfaceLoader piLoader;
 				DigitalOut aux;
 				Button btn;
+				Led statusLed;
 
 				net::ResourceService service;
 				int time;
-				EventQueue queue;
 				Task<Callback<void()>> initTask;
 
 				void initialize();

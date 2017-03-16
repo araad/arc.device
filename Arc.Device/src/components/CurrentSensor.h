@@ -9,11 +9,11 @@ namespace arc
 	{
 		namespace components
 		{
-			class CurrentSensor : protected Sensor
+			class CurrentSensor : public Sensor
 			{
 			public:
 
-				CurrentSensor(PinName pin, int min, int max, int period, bool extARef = false);
+				CurrentSensor(PinName pin, int min, int max, int samplePeriod, int readPeriod, bool extARef = false);
 				~CurrentSensor();
 
 				void Initialize();
@@ -22,13 +22,14 @@ namespace arc
 
 			private:
 				float current;
+				int readPeriod;
 
 				Event<void(void)> *CurrentChange;
 
+				EventQueue queue;
 				Thread readInputThread;
 
-				void readInputThreadStarter();
-				void readInput_Task();
+				void sampleInput_Task();
 
 				void readCurrent();
 			};

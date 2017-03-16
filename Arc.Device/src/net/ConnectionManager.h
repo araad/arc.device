@@ -6,6 +6,11 @@
 #include "ClientConnection.h"
 #include "NetworkDiscovery.h"
 #include "../core/Task.h"
+#include "../components/Led.h"
+
+#ifdef MBED_CONFIG_INTELLISENSE
+#include "../BUILD/NUCLEO_F401RE/GCC_ARM/mbed_config.h"
+#endif
 
 namespace arc
 {
@@ -19,36 +24,39 @@ namespace arc
 				ConnectionManager();
 
 				void StartConnection();
-				void StopConnection();
 				void StartDiscovery();
-				void StopDiscovery();
+				void SetStatusLed(components::Led* statusLed);
 			private:
-				Mutex networkMutex;
-				ESP8266Interface *network;
+				ESP8266Interface* networkInterface;
+				components::Led* statusLed;
 
-				ClientConnection* client;
-				rtos::Thread *connectionThread;
+				Thread connectionThread;
 				core::Task<Callback<void()>>* connectionTask;
 
+				Timeout clientTimeout;
+
 				NetworkDiscovery* netDiscovery;
-				rtos::Thread *discoveryThread;
+				Thread discoveryThread;
 				core::Task<Callback<void()>>* discoveryTask;
 				Timeout discoveryTimeout;
 
+				Event<void()> clientRegisteredEv;
 
 				string ssid;
 				string pswd;
+				Mutex credMutex;
 				
+				void resetNetworkInterface();
 				void do_startDiscovery();
-				void resetWifi();
 				void connect();
 				void discover();
 				void discoverTimeout_ISR();
 				void discoverTimeout();
 				void onDiscoverComplete(char* ssid, char* pswd);
+				void onClientRegistered();
 			};
 		}
 	}
 }
 
-extern arc::device::net::ConnectionManager* Connection;
+extern arc::device::net::ConnectionManager Connection;

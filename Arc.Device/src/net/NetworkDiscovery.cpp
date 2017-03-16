@@ -5,9 +5,7 @@
 #include "MbedJSONValue.h"
 #include <vector>
 #include <algorithm>
-
-#include "platform\mbed_stats.h"
-mbed_stats_heap_t heap_stats;
+#include "../security.h"
 
 arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Callback<void(char*, char*)> discoverComplete)
 	: espThread(osPriorityNormal, 512 * 5)
@@ -18,15 +16,18 @@ arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Call
 	this->discoverComplete = &discoverComplete;
 
 	Logger.Trace("starting up as AP...");
-	esp->startup(3);
-	scanNetworks();
-	Logger.Trace("configuring...");
-	esp->configureSoftAP("ARC_Discovery");
-	Logger.Trace("starting server...");
-	esp->startServer();
-	Logger.Trace("Server started");
+	if (esp->configureSoftAP("ARC_Discovery", "arc12345") == 0)
+	{
+		Logger.Trace("starting server...");
+		esp->startServer();
+		Logger.Trace("Server started");
 
-	espThread.start(callback(this, &NetworkDiscovery::listen));
+		espThread.start(callback(this, &NetworkDiscovery::listen));
+	}
+	else
+	{
+		this->discoverComplete->call("", "");
+	}
 }
 
 arc::device::net::NetworkDiscovery::~NetworkDiscovery()
@@ -79,7 +80,8 @@ void arc::device::net::NetworkDiscovery::listen()
 
 		if (request.find("GET") == 0)
 		{
-			sendAPList();
+			//sendAPList();
+			sendDeviceInfo();
 		}
 		else if (request.find("OPTIONS") == 0)
 		{
@@ -128,6 +130,18 @@ void arc::device::net::NetworkDiscovery::sendAPList()
 	}
 }
 
+void arc::device::net::NetworkDiscovery::sendDeviceInfo()
+{
+	string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nContent-Length: ");
+	string dataStr = MBED_ENDPOINT_NAME;
+	char size_buf[5];
+	itoa(dataStr.length(), size_buf, 10);
+	response.append(size_buf);
+	response.append("\r\n\r\n");
+	response.append(dataStr.c_str());
+	esp->send(0, response.c_str(), response.length());
+}
+
 void arc::device::net::NetworkDiscovery::receiveAPCredentials(string request)
 {
 	Logger.Trace("Receiving AP credentials...");
@@ -144,5 +158,4 @@ void arc::device::net::NetworkDiscovery::receiveAPCredentials(string request)
 
 	Logger.Trace("Adding one time task...");
 	discoverComplete->call(ssid, pswd);
-	//Tasks->AddOneTimeTask(*discoverComplete, ssid, pswd);
 }
