@@ -1,13 +1,18 @@
 #include "TaskManager.h"
 #include "../utils/LogManager.h"
-#include "Task.h"
 
-arc::device::core::TaskManager::TaskManager() {}
+using namespace arc::device::utils;
+
+arc::device::core::TaskManager::TaskManager()
+	: queue(40 * EVENTS_EVENT_SIZE)
+{}
 
 int arc::device::core::TaskManager::AddRecurringTask(const char* name, Callback<void()> cb, int period)
 {
 	Task<Callback<void()>>* task = new Task<Callback<void()>>(name, cb, false);
-	return queue.call_every(period, callback(&core::TaskBase::taskStarter<Task<Callback<void()>>>, task));
+	int taskId = queue.call_every(period, callback(&core::TaskBase::taskStarter<Task<Callback<void()>>>, task));
+	tasks[taskId] = task;
+	return taskId;
 }
 
 void arc::device::core::TaskManager::AddDelayedTask(Callback<void()> cb, int delay)
@@ -48,11 +53,17 @@ void arc::device::core::TaskManager::AddTask()
 void arc::device::core::TaskManager::CancelTask(int taskId)
 {
 	queue.cancel(taskId);
+	TaskBase* task = tasks[taskId];
+	if (task)
+	{
+		delete task;
+	}
+	tasks.erase(taskId);
 }
 
 void arc::device::core::TaskManager::Start()
 {
-	Logger.Trace("TaskManager - Starting tasks");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "TaskManager - Starting tasks");
 	queue.dispatch_forever();
 }
 

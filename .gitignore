@@ -247,6 +247,10 @@ ModelManifest.xml
 /Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/*
 /Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/*
 !/Arc.Device/mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/TARGET_ARC_STM32F401RE/*
+/Arc.Device/mbed-os/rtos/*
+/Arc.Device/mbed-os/rtos/rtx/*
+/Arc.Device/mbed-os/rtos/rtx/TARGET_CORTEX_M/*
+!/Arc.Device/mbed-os/rtos/rtx/TARGET_CORTEX_M/cmsis_os.h
 /Arc.Device/mbed_settings.pyc
 /Arc.Device/DebounceIn
 /Arc.Device/PinDetect

@@ -71,8 +71,8 @@ bool ESP8266::connect(const char *ap, const char *passPhrase)
 {
 	//Logger.Trace("ESP8266 - Checking if already connected...");
 	////wait(4); // give time to the esp to remember previous connection
-	if (isConnected())
-	{
+	//if (isConnected())
+	//{
 		//if (_parser.send("AT+CWJAP?"))
 		//{
 		//	char ssid[30];
@@ -81,13 +81,13 @@ bool ESP8266::connect(const char *ap, const char *passPhrase)
 		//		string actualStr = ssid;
 		//		if (actualStr.compare(ap) == 0)
 		//		{
-		Logger.Trace("ESP8266 - Already connected? Yes");
-		return true;
+		/*Logger.Trace("ESP8266 - Already connected? Yes");
+		return true;*/
 		//		}
 		//	}
 		//}
-	}
-	Logger.Trace("ESP8266 - Already connected? No");
+	//}
+	//Logger.Trace("ESP8266 - Already connected? No");
 
 	return _parser.send("AT+CWJAP=\"%s\",\"%s\"", ap, passPhrase)
 		&& _parser.recv("OK");

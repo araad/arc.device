@@ -1,14 +1,17 @@
 #include "Device.h"
+#include "TaskManager.h"
+#include "MainsController.h"
 #include "../utils/LogManager.h"
-
-#include "../mbed_config.h"
+#include "../net/ConnectionManager.h"
+#include "../mbed_config_include.h"
 
 using namespace arc::device::core;
 using namespace arc::device::net;
+using namespace arc::device::utils;
 
 TaskManager Tasks;
+MainsController MainsCtrl;
 ConnectionManager Connection;
-DigitalOut mainsSwitch(MBED_CONF_APP_DEVICE_MAINS_SWITCH);
 
 static const char* infoKey = "info";
 static const char* timeKey = "time";
@@ -18,22 +21,34 @@ static const char* pi_idKey = "pi_id";
 
 extern "C" void __NVIC_SystemReset();
 
+void reset()
+{
+	__NVIC_SystemReset();
+}
+
 void heartbeat() {
-	Logger.Trace("Heartbeat");
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "Heartbeat");
 }
 
 arc::device::core::Device::Device()
-	: aux(MBED_CONF_APP_DEVICE_AUX),
-	service("dev", Tasks.GetQueue()),
-	btn(MBED_CONF_APP_DEVICE_BUTTON, (PinMode)MBED_CONF_APP_DEVICE_BUTTON_MODE),
-	piLoader(callback(this, &Device::onPanelInterfaceLoaded)),
+	: ModuleBase::ModuleBase("dev"),
+	aux(MBED_CONF_APP_DEVICE_AUX),
+	btn(MBED_CONF_APP_DEVICE_BUTTON, MBED_CONF_APP_DEVICE_BUTTON_MODE),
 	statusLed(MBED_CONF_APP_DEVICE_STATUS_LED),
-	initTask("DeviceInit", callback(this, &Device::initialize), false)
+	setCurrentTimeEv(Tasks.GetQueue(), callback(this, &Device::onSetCurrentTime)),
+	auxUpdatedEv(Tasks.GetQueue(), callback(this, &Device::onAuxUpdated)),
+	initTask("DeviceInit", callback(this, &Device::Initialize), false),
+	piLoader(callback(this, &Device::onPanelInterfaceChanged))
 {
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - ctor()");
+
+	aux = 0;
+	auxCtrl = NULL;
+
 	initTask.run();
 }
 
-void arc::device::core::Device::initialize()
+void arc::device::core::Device::Initialize()
 {
 	Tasks.AddRecurringTask("Heartbeat", callback(&heartbeat), 2000);
 
@@ -43,66 +58,90 @@ void arc::device::core::Device::initialize()
 	btn.addTapHandler(callback(this, &Device::onBtnTap));
 	btn.addSingleHoldHandler(callback(this, &Device::onBtnHold));
 
-	mainsSwitch = 1;
-
 	// Start the connection
 	initTask.state = core::TaskState::ASLEEP;
 	Tasks.AddOneTimeTask(callback(&Connection, &ConnectionManager::StartConnection));
 	initTask.state = core::TaskState::ALIVE;
 
-	int panelInterfaceId = piLoader.getPanelInterfaceId();
-	service.AddResource(pi_idKey, infoKey, ResourceService::INTEGER, &panelInterfaceId);
-
-	Callback<void(int)> time_cb = callback(this, &Device::onSetCurrentTime);
-	service.AddMethod(timeKey, infoKey, ResourceService::INTEGER, &time_cb);
-
-	Callback<void(bool)> sysHangSim_cb = callback(this, &Device::onSysHangSim);
-	service.AddMethod(sys_hangKey, simKey, ResourceService::BOOLEAN, &sysHangSim_cb);
-
-	bool aux_val = aux.read();
-	Callback<void(bool)> aux_cb = callback(this, &Device::onSetAux);
-	service.AddResource("aux", "aux", ResourceService::BOOLEAN, &aux_val, &aux_cb);
+	ModuleBase::Initialize();
 
 	initTask.state = TaskState::ASLEEP;
 	Tasks.Start();
 }
 
+void arc::device::core::Device::registerResources()
+{
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - registerResources() begin");
+
+	int panelInterfaceId = (int)piLoader.getPanelInterfaceId();
+	service.AddResource(pi_idKey, infoKey, ResourceService::INTEGER, &panelInterfaceId);
+
+	bool aux_val = aux.read();
+	service.AddResource("aux", "aux", ResourceService::BOOLEAN, &aux_val, &auxUpdatedEv);
+
+	service.AddMethod(timeKey, infoKey, ResourceService::INTEGER, &setCurrentTimeEv);
+
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - registerResources() end");
+}
+
 void arc::device::core::Device::onSetCurrentTime(int value)
 {
-	Logger.Trace("onTimeUpdated %d", value);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - onTimeUpdated()");
 	set_time(value);
-	Logger.Trace("New Time");
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "Device - onTimeUpdated() new time: %d", value);
 }
 
-void arc::device::core::Device::onPanelInterfaceLoaded(int piId)
+void arc::device::core::Device::onPanelInterfaceChanged(uint8_t piId)
 {
-	service.updateValue(pi_idKey, &piId);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - onPanelInterfaceChanged() id:%d", piId);
+	switch (piId)
+	{
+	case 1:
+		MainsCtrl.enableMainPower();
+		break;
+	case 3:
+		auxCtrl = (IAuxController*)piLoader.getPanelInterface();
+		Event<void(bool)>* ev = new Event<void(bool)>(Tasks.GetQueue(), callback(this, &Device::setAux));
+		auxCtrl->setUpdateAuxEv(ev);
+	default:
+		MainsCtrl.disableMainPower();
+		break;
+	}
+
+	int val = (int)piId;
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Device - onPanelInterfaceChanged() calling service", piId);
+	service.updateValue(pi_idKey, &val);
+	if (val == 0)
+	{
+		Tasks.AddDelayedTask(callback(reset), 1000);
+	}
 }
 
-void arc::device::core::Device::onSetAux(bool value)
+void arc::device::core::Device::onAuxUpdated(bool value)
 {
+	aux = value;
+	if (auxCtrl)
+	{
+		auxCtrl->onAuxUpdated(value);
+	}
 }
 
-void arc::device::core::Device::onBtnTap(int tapCount)
+void arc::device::core::Device::setAux(bool state)
+{
+	aux = state;
+	bool val = aux.read();
+	service.updateValue("aux", &val);
+}
+
+void arc::device::core::Device::onBtnTap(uint8_t tapCount)
 {
 	if (tapCount == 1)
 	{
-		__NVIC_SystemReset();
+		reset();
 	}
 }
 
 void arc::device::core::Device::onBtnHold()
 {
 	Connection.StartDiscovery();
-}
-
-void do_SysHangSim()
-{
-	while (1) {}
-}
-
-void arc::device::core::Device::onSysHangSim(bool value)
-{
-	Task<Callback<void()>> task("SysHangSim", callback(do_SysHangSim));
-	task.run();
 }

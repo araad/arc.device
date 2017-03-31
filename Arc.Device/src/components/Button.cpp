@@ -2,13 +2,14 @@
 #include "..\core\TaskManager.h"
 #include "..\utils\LogManager.h"
 #include "PinDetect.h"
-#include "../mbed_config.h"
 
 using namespace arc::device::components;
+using namespace arc::device::utils;
 
 Button::Button(PinName pin, PinMode mode)
 	: _pin(pin, mode)
 {
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Button - ctor()");
 	_pin.setAssertValue(0);
 	Tap = 0;
 	SingleHold = 0;
@@ -59,7 +60,6 @@ void Button::onInterruptAssert()
 	}
 
 	tapCount++;
-	//Logger.Trace("number of taps: %d", tapCount);
 	timeout.attach(callback(this, &Button::countTaps_ISR), TAP_INTERVAL);
 }
 
@@ -123,9 +123,9 @@ void arc::device::components::Button::postTapEvent()
 	timeout.detach();
 }
 
-void arc::device::components::Button::addTapHandler(Callback<void(int)> cb)
+void arc::device::components::Button::addTapHandler(Callback<void(uint8_t)> cb)
 {
-	Tap = new Event<void(int)>(Tasks.GetQueue(), cb);  //calls cb on the Tasks queue (main thread), returns a void accepts an int.
+	Tap = new Event<void(uint8_t)>(Tasks.GetQueue(), cb);  //calls cb on the Tasks queue (main thread), returns a void accepts an int.
 }
 
 void arc::device::components::Button::addSingleHoldHandler(Callback<void(void)> cb)

@@ -18,7 +18,7 @@ namespace arc
 			class Button
 			{
 			public:
-				Event<void(int)> *Tap;
+				Event<void(uint8_t)> *Tap;
 				Event<void(void)> *SingleHold;
 				Event<void(void)> *ContinuousHold;
 
@@ -27,14 +27,14 @@ namespace arc
 
 				void Initialize();
 
-				void addTapHandler(Callback<void(int)> cb);   //change (void) to int maybe
+				void addTapHandler(Callback<void(uint8_t)> cb);   //change (void) to int maybe
 				void addSingleHoldHandler(Callback<void(void)> cb);
 				void addContinuousHoldHandler(Callback<void(void)> cb);
 
-				int tapCount;
-				int tickCount;
+				uint8_t tapCount;
+				uint8_t tickCount;
 			private:
-				Ticker ticker;
+				mbed::Ticker ticker;
 				Timeout timeout;
 				PinDetect _pin;
 

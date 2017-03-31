@@ -3,33 +3,38 @@
 #include "../utils/LogManager.h"
 #include "../core/TaskManager.h"
 
-#include "../mbed_config.h"
+#include "../mbed_config_include.h"
 
 #include "../mbed-os/features/FEATURE_COMMON_PAL/mbed-trace/mbed-trace/mbed_trace.h"
 
 using namespace arc::device::net;
 using namespace arc::device::core;
 using namespace arc::device::components;
+using namespace arc::device::utils;
 
 ClientConnection Client;
 
+extern "C" void __NVIC_SystemReset();
+
 arc::device::net::ConnectionManager::ConnectionManager()
-	: connectionThread(osPriorityNormal, 512 * 3),
+	: connectionThread(osPriorityNormal, 256 * 6),
 	discoveryThread(osPriorityNormal, 256 * 7),
-	clientRegisteredEv(Tasks.GetQueue(), callback(this, &ConnectionManager::onClientRegistered))
+	clientRegisteredEv(Tasks.GetQueue(), callback(this, &ConnectionManager::onClientRegistered)),
+	clientErrorEv(Tasks.GetQueue(), callback(this, &ConnectionManager::onClientError))
 {
-	Logger.Trace("ConnectionManager - ctor() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - ctor()");
 
 	networkInterface = 0;
 	connectionTask = 0;
 	discoveryTask = 0;
-
-	Logger.Trace("ConnectionManager - ctor() - end");
+	currentHandlerIndex = 0;
+	clientStarted = false;
+	clientRegistered = false;
 }
 
 void arc::device::net::ConnectionManager::StartConnection()
 {
-	Logger.Trace("ConnectionManager - StartConnection() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - StartConnection()");
 
 	// TODO: check if connection already started
 
@@ -37,34 +42,32 @@ void arc::device::net::ConnectionManager::StartConnection()
 
 	connectionTask = new Task<Callback<void()>>("Connection", callback(this, &ConnectionManager::connect), false);
 	connectionThread.start(callback(&TaskBase::taskStarter<Task<Callback<void()>>>, connectionTask));
-
-	Logger.Trace("ConnectionManager - StartConnection() - end");
 }
 
 void arc::device::net::ConnectionManager::StartDiscovery()
 {
-	Logger.Trace("ConnectionManager - StartDiscovery() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - StartDiscovery() - begin");
 
 	Thread::State discState = discoveryThread.get_state();
 	if (discState != Thread::Inactive && discState != Thread::Deleted)
 	{
-		Logger.Trace("ConnectionManager - StartDiscovery() discovery already started, cancelling...");
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - StartDiscovery() discovery already started, cancelling...");
 		return;
 	}
 
 	int delay = 0;
 	Thread::State connState = connectionThread.get_state();
-	if (connState == Thread::Inactive || connState == Thread::Deleted)
+	if (clientStarted && (connState == Thread::Inactive || connState == Thread::Deleted))
 	{
 		/*Client.Unregister();
 		Tasks.AddDelayedTask(callback(&Client, &ClientConnection::Stop), 1000);
 		delay = 3000;*/
-		Logger.Warn("ConnectionManager - StartDiscovery() Mbed Client was already started, must reset for now until we have a fix for restarting");
+		Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "ConnectionManager - StartDiscovery() Mbed Client was already started, must reset for now until we have a fix for restarting");
 		return;
 	}
 	else
 	{
-		Logger.Trace("ConnectionManager - StartDiscovery() terminating connectionThread");
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - StartDiscovery() terminating connectionThread");
 		connectionThread.terminate();
 	}
 
@@ -72,7 +75,7 @@ void arc::device::net::ConnectionManager::StartDiscovery()
 
 	Tasks.AddDelayedTask(callback(this, &ConnectionManager::do_startDiscovery), delay);
 
-	Logger.Trace("ConnectionManager - StartDiscovery() - end");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - StartDiscovery() - end");
 }
 
 void arc::device::net::ConnectionManager::SetStatusLed(components::Led * statusLed)
@@ -80,9 +83,25 @@ void arc::device::net::ConnectionManager::SetStatusLed(components::Led * statusL
 	this->statusLed = statusLed;
 }
 
+void arc::device::net::ConnectionManager::AddClientRegisteredEventHandler(Callback<void()>* cb)
+{
+	if (clientRegistered)
+	{
+		cb->call();
+	}
+	else if (currentHandlerIndex < maxHandlers)
+	{
+		onClientRegisteredEventHandler[currentHandlerIndex++] = cb;
+	}
+	else
+	{
+		Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "ConnectionManager - AddClientRegisteredEventHandler() Reached max of %d handlers", maxHandlers);
+	}
+}
+
 void arc::device::net::ConnectionManager::do_startDiscovery()
 {
-	Logger.Trace("ConnectionManager - do_startDiscovery() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - do_startDiscovery() - begin");
 
 	networkInterface->disconnect();
 
@@ -90,36 +109,36 @@ void arc::device::net::ConnectionManager::do_startDiscovery()
 	discoveryTimeout.attach(callback(this, &ConnectionManager::discoverTimeout_ISR), 180);
 	discoveryThread.start(callback(&core::TaskBase::taskStarter<core::Task<Callback<void()>>>, discoveryTask));
 
-	Logger.Trace("ConnectionManager - do_startDiscovery() - end");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - do_startDiscovery() - end");
 }
 
 void arc::device::net::ConnectionManager::resetNetworkInterface()
 {
-	Logger.Trace("ConnectionManager - resetNetworkInterface()");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - resetNetworkInterface()");
 
 	if (networkInterface)
 	{
 		delete networkInterface;
 		networkInterface = 0;
 	}
-	networkInterface = new ESP8266Interface(MBED_CONF_APP_ESP8266_TX, MBED_CONF_APP_ESP8266_RX, MBED_CONF_APP_ESP8266_RESET);
+	networkInterface = new ESP8266Interface(MBED_CONF_APP_ESP8266_TX, MBED_CONF_APP_ESP8266_RX, MBED_CONF_APP_ESP8266_DEBUG);
 	networkInterface->hardReset();
 }
 
 void arc::device::net::ConnectionManager::connect()
 {
 	Logger.mapThreadName("Connect");
-	Logger.Trace("ConnectionManager - connect() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - connect() - begin");
 
 	resetNetworkInterface();
 
-	Logger.Trace("ConnectionManager - connect() configuring station...");
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - connect() configuring station...");
 
 	connectionTask->state = TaskState::ASLEEP;
 	int connError = networkInterface->configureStation();
 	connectionTask->state = TaskState::ALIVE;
 
-	Logger.Trace("ConnectionManager - connect() configuring station done, connError: %d", connError);
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - connect() configuring station done, connError: %d", connError);
 
 	connectionTask->state = TaskState::ASLEEP;
 	credMutex.lock();
@@ -127,39 +146,43 @@ void arc::device::net::ConnectionManager::connect()
 
 	if (!ssid.empty() && !pswd.empty())
 	{
-		Logger.Trace("ConnectionManager - connect(): Connecting to Network \"%s\"", ssid.c_str());
+		Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - connect(): Connecting to Network \"%s\"", ssid.c_str());
 
 		connectionTask->state = TaskState::ASLEEP;
-		connError = networkInterface->connect(ssid.c_str(), pswd.c_str());
+		connError = networkInterface->connect(ssid.c_str(), pswd.c_str());		
 		connectionTask->state = TaskState::ALIVE;
+
+		// TODO: unable to reuse esp after discovery to connect with mbed client without resetting
+		if (connError == 0) __NVIC_SystemReset();
 	}
 
 	credMutex.unlock();
 
 	if (connError == 0)
 	{
-		Logger.Trace("ConnectionManager - connect(): Connected");
+		Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - connect(): Connected");
 
 		statusLed->blink(true);
 
 		connectionTask->state = TaskState::ASLEEP;
-		Client.Start(networkInterface, &clientRegisteredEv);
+		Client.Start(networkInterface, &clientRegisteredEv, &clientErrorEv);
+		clientStarted = true;
 		connectionTask->state = TaskState::ALIVE;
 	}
 	else
 	{
-		Logger.Error("ConnectionManager - connect(): Connection to Network Failed %d", connError);
-		statusLed->solid();
+		Logger.queue.call(LogManager::Log, LogManager::ErrorArgs(), "ConnectionManager - connect(): Connection to Network Failed %d", connError);
+		statusLed->pulse();
 	}
 	delete connectionTask;
 
-	Logger.Trace("ConnectionManager - connect() - end");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - connect() - end");
 }
 
 void arc::device::net::ConnectionManager::discover()
 {
 	Logger.mapThreadName("Discover");
-	Logger.Trace("ConnectionManager - discover() - begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - discover() - begin");
 
 	resetNetworkInterface();
 
@@ -169,7 +192,7 @@ void arc::device::net::ConnectionManager::discover()
 
 	statusLed->pulse(3);
 
-	Logger.Trace("waiting...");
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - discover() waiting for incoming connection...");
 	discoveryTask->state = TaskState::ASLEEP;
 	Thread::signal_wait(0x1);
 	discoveryTask->state = TaskState::ALIVE;
@@ -186,7 +209,7 @@ void arc::device::net::ConnectionManager::discover()
 
 	delete discoveryTask;
 
-	Logger.Trace("ConnectionManager - discover() - end");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - discover() - end");
 }
 
 void arc::device::net::ConnectionManager::discoverTimeout_ISR()
@@ -196,18 +219,16 @@ void arc::device::net::ConnectionManager::discoverTimeout_ISR()
 
 void arc::device::net::ConnectionManager::discoverTimeout()
 {
-	Logger.Trace("ConnectionManager - discoverTimeout()");
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - discoverTimeout() timeout before incoming connection");
 	discoveryThread.signal_set(0x1);
 }
 
 void arc::device::net::ConnectionManager::onDiscoverComplete(char * ssidVal, char* pswdVal)
 {
-	Logger.Trace("ssid: %s pswd: %s", ssidVal, pswdVal);
+	Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "ConnectionManager - onDiscoverComplete() received credentials for wifi network");
 
 	ssid = ssidVal;
 	pswd = pswdVal;
-
-	Logger.Trace("after __ssid: %s __pswd: %s", ssid.c_str(), pswd.c_str());
 
 	discoveryTimeout.detach();
 	discoveryThread.signal_set(0x1);
@@ -215,6 +236,20 @@ void arc::device::net::ConnectionManager::onDiscoverComplete(char * ssidVal, cha
 
 void arc::device::net::ConnectionManager::onClientRegistered()
 {
-	Logger.Trace("ConnectionManager - onClientRegistered()");
-	statusLed->pulse();
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ConnectionManager - onClientRegistered()");
+	statusLed->pulse(2);
+	clientRegistered = true;
+	for (uint8_t i = 0; i < maxHandlers; i++)
+	{
+		Callback<void()>* cb = onClientRegisteredEventHandler[i];
+		if (cb)
+		{
+			cb->call();
+		}
+	}
+}
+
+void arc::device::net::ConnectionManager::onClientError()
+{
+	__NVIC_SystemReset();
 }

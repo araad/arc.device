@@ -2,16 +2,18 @@
 
 #include "mbed.h"
 #include "../core/IPanelInterface.h"
-#include "../net/ResourceService.h"
-#include "../components/CurrentSensor.h"
-
-using namespace arc::device::core;
-using namespace arc::device::components;
+#include "../modules/ElectricalOutlet.h"
+#include "../modules/UsbOutlet.h"
+#include "../modules/NightLight.h"
+#include "../net/ConnectionManager.h"
 
 namespace arc
 {
 	namespace device
 	{
+		using namespace core;
+		using namespace modules;
+
 		namespace interfaces
 		{
 			class ElectricalOutletPanel : public IPanelInterface
@@ -23,14 +25,9 @@ namespace arc
 				virtual void Start();
 				virtual void Stop();
 			private:
-				net::ResourceService service;
-				DigitalOut pwrState;
-				CurrentSensor sensor;
-
-				void onPowerStateUpdated(bool value);
-				Callback<void(bool)> powerStateUpdatedCallback;
-
-				void onCurrentChange();
+				ElectricalOutletCollection outlets;
+				NightLight nightLight;
+				DigitalOut usbEnable;
 			};
 		}
 	}

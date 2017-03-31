@@ -1,55 +1,50 @@
 #include "ElectricalOutletPanel.h"
 #include "../utils/LogManager.h"
-#include "./../core/TaskManager.h"
+#include "../core/TaskManager.h"
 
-#include "../mbed_config.h";
+#include "../mbed_config_include.h";
+
+using namespace arc::device::utils;
 
 
 arc::device::interfaces::ElectricalOutletPanel::ElectricalOutletPanel()
-	: service("3312", Tasks.GetQueue()),
-	pwrState(MBED_CONF_APP_ELECTRICAL_OUTLET_PLUG_B_SWITCH),
-	sensor(MBED_CONF_APP_ELECTRICAL_OUTLET_PLUG_B_SENSOR, 0, 4000, 10, 3000)
+	:
+	outlets(
+		2,
+		MBED_CONF_APP_ELECTRICAL_OUTLET_A_SWITCH,
+		MBED_CONF_APP_ELECTRICAL_OUTLET_A_SENSOR,
+		MBED_CONF_APP_ELECTRICAL_OUTLET_B_SWITCH,
+		MBED_CONF_APP_ELECTRICAL_OUTLET_B_SENSOR),
+	usbEnable(MBED_CONF_APP_USB_OUTLET_ENABLE),
+	nightLight(
+		MBED_CONF_APP_NIGHT_LIGHT_LED_RED,
+		MBED_CONF_APP_NIGHT_LIGHT_LED_GREEN,
+		MBED_CONF_APP_NIGHT_LIGHT_LED_BLUE,
+		MBED_CONF_APP_NIGHT_LIGHT_SENSOR,
+		MBED_CONF_APP_NIGHT_LIGHT_BUTTON,
+		MBED_CONF_APP_NIGHT_LIGHT_BUTTON_MODE)
 {
-	pwrState = 0;
-	sensor.Initialize();
-	sensor.addCurrentChangeHandler(callback(this, &ElectricalOutletPanel::onCurrentChange));
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ElectricalOutletPanel - ctor()");
+	usbEnable = 1;
 }
 
 arc::device::interfaces::ElectricalOutletPanel::~ElectricalOutletPanel()
 {
-	Logger.Trace("ElectricalOutletPanel - dtor()");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ElectricalOutletPanel - dtor()");
+	usbEnable = 0;
 }
 
 void arc::device::interfaces::ElectricalOutletPanel::Start()
 {
-	Logger.Trace("ElectricalOutletPanel - Start() begin");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ElectricalOutletPanel - Start() begin");
 
-	bool state = pwrState.read();
-	powerStateUpdatedCallback = callback(this, &ElectricalOutletPanel::onPowerStateUpdated);
-	service.AddResource("5850", "plugs", net::ResourceService::BOOLEAN, &state, &powerStateUpdatedCallback);
+	outlets.Initialize();
+	nightLight.Initialize();
 
-	float reading = sensor.GetCurrent();
-	service.AddResource("5700", "sensors", net::ResourceService::FLOAT, &reading);
-
-	Tasks.AddDelayedTask(callback(this, &ElectricalOutletPanel::onPowerStateUpdated), true, 20000);
-
-	Logger.Trace("ElectricalOutletPanel - Start() end");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ElectricalOutletPanel - Start() end");
 }
 
 void arc::device::interfaces::ElectricalOutletPanel::Stop()
 {
-	Logger.Trace("ElectricalOutletPanel - Stop()");
-}
-
-void arc::device::interfaces::ElectricalOutletPanel::onPowerStateUpdated(bool value)
-{
-	Logger.Trace("ElectricalOutletPanel - onPowerStateUpdated() new value = %d", value);
-	pwrState = value;
-}
-
-void arc::device::interfaces::ElectricalOutletPanel::onCurrentChange()
-{
-	float reading = sensor.GetCurrent();
-	Logger.Trace("Current: %f", reading);
-	service.updateValue("5700", &reading);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ElectricalOutletPanel - Stop()");
 }

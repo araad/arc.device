@@ -3,7 +3,6 @@
 #include "mbed.h"
 #include <vector>
 #include <atomic>
-#include <string>
 #include <algorithm>
 
 using namespace std;
@@ -36,10 +35,10 @@ namespace arc
 
 				const char* getName()
 				{
-					return name.c_str();
+					return name;
 				}
 			protected:
-				string name;
+				const char* name;
 				bool periodic;
 			};
 
@@ -49,7 +48,7 @@ namespace arc
 			public:
 				Task(const char* name, T cb, bool periodic = true)
 				{
-					this->name = string(name);
+					this->name = name;
 					this->state = TaskState::ASLEEP;
 					this->cb = cb;
 					this->periodic = periodic;

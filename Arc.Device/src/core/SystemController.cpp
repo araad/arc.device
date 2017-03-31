@@ -2,24 +2,19 @@
 #include "../utils/LogManager.h"
 #include "Task.h"
 
-static const char* resetTrace = "SystemController - system was reset by watchdog";
+using namespace arc::device::utils;
 
 vector<arc::device::core::TaskBase*> arc::device::core::TaskBase::instances;
 
 arc::device::core::SystemController::SystemController()
-	: th(osPriorityRealtime, 1280)
+	: th(osPriorityRealtime, 640)
 {
-	Logger.Trace("SystemController - ctor() - begin");
-
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "SystemController - ctor()");
 	initWatchdog();
-
-	th.start(callback(&queue, &EventQueue::dispatch_forever));
-	Logger.Trace("SystemController - ctor() - end");
 }
 
 arc::device::core::SystemController::~SystemController()
 {
-	queue.break_dispatch();
 	th.terminate();
 }
 
@@ -29,14 +24,24 @@ void arc::device::core::SystemController::initWatchdog()
 	if (result)
 	{
 		// TODO: read recorded failure message and notify listeners
-		Logger.Trace(resetTrace);
+		Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "SystemController - system was reset by watchdog");
 	}
 
-	//IWDG->KR = 0x5555; //Disable write protection of IWDG registers
-	//IWDG->KR = 0xAAAA;    //Reload IWDG
-	//IWDG->KR = 0xCCCC;    //Start IWDG
+	IWDG->KR = 0x5555; //Disable write protection of IWDG registers
+	IWDG->KR = 0xAAAA;    //Reload IWDG
+	IWDG->KR = 0xCCCC;    //Start IWDG
 
-	//queue.call_every(500, callback(this, &SystemController::kickWatchdog));
+	th.start(callback(this, &SystemController::kickWatchdogThreadStarter));
+}
+
+void arc::device::core::SystemController::kickWatchdogThreadStarter()
+{
+	Logger.mapThreadName("SysCtrl");
+	while (1)
+	{
+		wait_ms(500);
+		kickWatchdog();
+	}
 }
 
 bool arc::device::core::SystemController::getAndClearWatchdogReset()
@@ -75,15 +80,15 @@ void arc::device::core::SystemController::kickWatchdog()
 		{
 			// TODO: record the failure message identifiying the failing task
 			//IWDG->KR = 0xAAAA;
-			Logger.Trace("bad: %s", task->getName());
+			Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "SystemController - kickWatchdog() task failed: %s", task->getName());
 		}
 	}
 
-	//Logger.Trace("%d", TaskBase::instances.size());
+	//Logger.queue.call(LogManager::Log, LogManager::InfoArgs(), "SystemController - kickWatchdog() %d", TaskBase::instances.size());
 	for (it = TaskBase::instances.begin(); it < TaskBase::instances.end(); it++)
 	{
 		task = *it;
-		//Logger.Trace("%s", task->getName());
+		//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "SystemController - kickWatchdog() %s", task->getName());
 		if (task->state == TaskState::ALIVE)
 		{
 			task->state = TaskState::UNKNOWN;

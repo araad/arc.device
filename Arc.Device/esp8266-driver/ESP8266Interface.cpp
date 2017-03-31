@@ -56,9 +56,9 @@ int ESP8266Interface::connect()
         return NSAPI_ERROR_DEVICE_ERROR;
     }*/
 
-    if (!_esp.dhcp(true, 1)) {
+    /*if (!_esp.dhcp(true, 1)) {
         return NSAPI_ERROR_DHCP_FAILURE;
-    }
+    }*/
 
     if (!_esp.connect(ap_ssid, ap_pass)) {
         return NSAPI_ERROR_NO_CONNECTION;
@@ -165,7 +165,8 @@ int ESP8266Interface::configureStation()
 
 	wait(5);
 
-	if (!_esp.getIPAddress()) {
+	const char* ip = _esp.getIPAddress();
+	if (!ip || strcmp(ip, "0.0.0.0") == 0) {
 		return NSAPI_ERROR_DHCP_FAILURE;
 	}
 

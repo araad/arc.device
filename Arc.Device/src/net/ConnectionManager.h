@@ -26,6 +26,7 @@ namespace arc
 				void StartConnection();
 				void StartDiscovery();
 				void SetStatusLed(components::Led* statusLed);
+				void AddClientRegisteredEventHandler(Callback<void()>* cb);
 			private:
 				ESP8266Interface* networkInterface;
 				components::Led* statusLed;
@@ -41,6 +42,12 @@ namespace arc
 				Timeout discoveryTimeout;
 
 				Event<void()> clientRegisteredEv;
+				static const uint8_t maxHandlers = 5;
+				uint8_t currentHandlerIndex;
+				Callback<void()>* onClientRegisteredEventHandler[maxHandlers];
+				bool clientStarted;
+				bool clientRegistered;
+				Event<void()> clientErrorEv;
 
 				string ssid;
 				string pswd;
@@ -54,6 +61,7 @@ namespace arc
 				void discoverTimeout();
 				void onDiscoverComplete(char* ssid, char* pswd);
 				void onClientRegistered();
+				void onClientError();
 			};
 		}
 	}

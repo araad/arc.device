@@ -3,36 +3,37 @@
 #include "../utils/LogManager.h"
 
 using namespace arc::device::net;
+using namespace arc::device::utils;
 
-arc::device::net::ResourceService::ResourceService(char * name, EventQueue* queue)
+uint8_t ResourceService::objectCount = 0;
+M2MObject* ResourceService::objects[];
+
+arc::device::net::ResourceService::ResourceService(const char * name, uint8_t instance_id)
 {
-	Logger.Trace("ResourceService - ctor() - begin");
-	object = Client.GetRegisteredObject(name);
-	if (!object)
-	{
-		object = M2MInterfaceFactory::create_object(name);
-	}
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - ctor()");
 
-	instance = object->object_instance();
-
-	if (!instance)
-	{
-		instance = object->create_object_instance();
-	}
-
-	this->queue = queue;
-
-	Logger.Trace("ResourceService - ctor() - end");
+	object = NULL;
+	instance = NULL;
+	this->name = name;
+	this->instance_id = instance_id;
 }
 
 arc::device::net::ResourceService::~ResourceService()
 {
-	Logger.Trace("ResourceService - dtor()");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - dtor()");
+
+	object->remove_object_instance(instance->instance_id());
 }
 
-void arc::device::net::ResourceService::AddResource(const char* name, const char* category, ResourceType type, void* value, void* cb)
+void arc::device::net::ResourceService::AddResource(const char* name, const char* category, ResourceType type, void* value, void* ev)
 {
-	Logger.Trace("ResourceService - AddResource(): %s - begin", name);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - AddResource(): %s - begin", name);
+
+	if (!instance)
+	{
+		init();
+	}
+
 	if (instance)
 	{
 		char buffer[20];
@@ -52,123 +53,159 @@ void arc::device::net::ResourceService::AddResource(const char* name, const char
 			size = sprintf(buffer, "%s", (*(string*)value).c_str());
 			break;
 		default:
-			Logger.Error("ResourceService - AddResource(): Unknown Type");
+			Logger.queue.call(LogManager::Log, LogManager::ErrorArgs(), "ResourceService - AddResource(): Unknown Type");
 			return;
 		}
 
-		M2MResource* res = instance->resource(name);
-		if (!res) {
-			res = instance->create_dynamic_resource(name, category, (M2MResource::ResourceType)type, true);
-		}
-
+		M2MResource* res = instance->create_dynamic_resource(name, category, (M2MResource::ResourceType)type, true);
 		res->set_value((const uint8_t*)buffer, size);
-		if (cb)
+		if (ev)
 		{
 			res->set_operation(M2MBase::GET_PUT_ALLOWED);
 			res->set_value_updated_function(value_updated_callback(this, &ResourceService::onValueUpdated));
-			cbMap[string(name)] = cb;
+			eventMap[string(name)] = ev;
 		}
 		else
 		{
 			res->set_operation(M2MBase::GET_ALLOWED);
 		}
+		resNames.push_back(name);
 		Client.UpdateRegistration(object);
 	}
-
-	Logger.Trace("ResourceService - AddResource(): %s - end", name);
+	else
+	{
+		Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "ResourceService - AddResource() instance not found");
+	}
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - AddResource(): %s - end", name);
 }
 
-void arc::device::net::ResourceService::AddMethod(const char * name, const char * category, ResourceType type, void* cb)
+void arc::device::net::ResourceService::AddMethod(const char * name, const char * category, ResourceType type, void* ev)
 {
-	Logger.Trace("ResourceService - AddMethod(): %s - begin", name);
-	M2MResource* res = instance->create_dynamic_resource(name, category, (M2MResource::ResourceType)type, true);
-	res->set_operation(M2MBase::POST_ALLOWED);
-	res->set_execute_function(execute_callback(this, &ResourceService::onMethodExecute));
-	cbMap[string(name)] = cb;
-	Client.UpdateRegistration(object);
-	Logger.Trace("ResourceService - AddMethod(): %s - end", name);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - AddMethod(): %s - begin", name);
+
+	if (!instance)
+	{
+		init();
+	}
+
+	if (instance)
+	{
+		M2MResource* res = instance->create_dynamic_resource(name, category, (M2MResource::ResourceType)type, true);
+		res->set_operation(M2MBase::POST_ALLOWED);
+		res->set_execute_function(execute_callback(this, &ResourceService::onMethodExecute));
+		eventMap[string(name)] = ev;
+		Client.UpdateRegistration(object);
+	}
+	else
+	{
+		Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "ResourceService - AddMethod() instance not found");
+	}
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - AddMethod(): %s - end", name);
 }
 
 void arc::device::net::ResourceService::updateValue(const char * name, void * value)
 {
-	Logger.Trace("ResourceService - updateValue(): %s - begin", name);
-	M2MResource* res = instance->resource(name);
-	ResourceType type = (ResourceType)res->resource_instance_type();
-	if (res)
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - updateValue() %s/%d/%s - begin", object->name(), instance->instance_id(), name);
+	if (instance)
 	{
-		char buffer[20];
-		int size;
-		switch (type)
+		M2MResource* res = instance->resource(name);
+		if (res)
 		{
-		case INTEGER:
-			size = sprintf(buffer, "%d", *(int*)value);
-			break;
-		case BOOLEAN:
-			size = sprintf(buffer, "%d", *(bool*)value);
-			break;
-		case FLOAT:
-			size = sprintf(buffer, "%f", *(float*)value);
-			break;
-		case STRING:
-			size = sprintf(buffer, "%s", (*(string*)value).c_str());
-			break;
-		default:
-			Logger.Error("ResourceService - AddResource(): Unknown Type");
-			return;
+			ResourceType type = (ResourceType)res->resource_instance_type();
+			char buffer[20];
+			int size;
+			switch (type)
+			{
+			case INTEGER:
+				size = sprintf(buffer, "%d", *(int*)value);
+				break;
+			case BOOLEAN:
+				size = sprintf(buffer, "%d", *(bool*)value);
+				break;
+			case FLOAT:
+				size = sprintf(buffer, "%f", *(float*)value);
+				break;
+			case STRING:
+				size = sprintf(buffer, "%s", (*(string*)value).c_str());
+				break;
+			default:
+				Logger.queue.call(LogManager::Log, LogManager::ErrorArgs(), "ResourceService - AddResource(): Unknown Type");
+				return;
+			}
+
+			res->set_value((const uint8_t*)buffer, size);
 		}
-
-		res->set_value((const uint8_t*)buffer, size);
+		else
+		{
+			//Logger.queue.call(LogManager::Log, LogManager::WarnArgs(), "ResourceService - updateValue() %s/%d/%s resource not under observation", object->name(), instance->instance_id(), name);
+		}
 	}
-	else
+
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - updateValue() %s/%d/%s - end", object->name(), instance->instance_id(), name);
+}
+
+void arc::device::net::ResourceService::init()
+{
+	for (uint8_t i = 0; i < objectCount; i++)
 	{
-		Logger.Warn("ResourceService - updateValue(): resource not under observation");
+		M2MObject* storedObj = objects[i];
+		if (storedObj && strcmp(storedObj->name(), name) == 0)
+		{
+			object = storedObj;
+			break;
+		}
 	}
 
-	Logger.Trace("ResourceService - updateValue(): %s - end", name);
+	if (!object && objectCount < maxObjectCount)
+	{
+		object = M2MInterfaceFactory::create_object(name);
+		objects[objectCount++] = object;
+	}
+
+	instance = object->create_object_instance(instance_id);
 }
 
 void arc::device::net::ResourceService::onValueUpdated(const char * name)
 {
-	Logger.Trace("ResourceService - onValueUpdated(): %s - begin", name);
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - onValueUpdated(): %s - begin", name);
 	M2MResource* res = instance->resource(name);
 	ResourceType type = (ResourceType)res->resource_instance_type();
 	switch (type)
 	{
 	case INTEGER:
 	{
-		Callback<void(int)> *cb = (Callback<void(int)>*)cbMap[string(name)];
-		queue->call(*cb, res->get_value_int());
+		Event<void(int)> *ev = (Event<void(int)>*)eventMap[string(name)];
+		ev->post(res->get_value_int());
 		break;
 	}
 	case BOOLEAN:
 	{
-		Callback<void(bool)> *cb = (Callback<void(bool)>*)cbMap[string(name)];
-		queue->call(*cb, (bool)res->get_value_int());
+		Event<void(bool)> *ev = (Event<void(bool)>*)eventMap[string(name)];
+		ev->post((bool)res->get_value_int());
 		break;
 	}
 	case FLOAT:
 	{
-		Callback<void(float)> *cb = (Callback<void(float)>*)cbMap[string(name)];
-		queue->call(*cb, atof(res->get_value_string().c_str()));
+		Event<void(float)> *ev = (Event<void(float)>*)eventMap[string(name)];
+		ev->post(atof(res->get_value_string().c_str()));
 		break;
 	}
 	case STRING:
 	{
-		Callback<void(string)> *cb = (Callback<void(string)>*)cbMap[string(name)];
-		string newVal(res->get_value_string().c_str());
-		queue->call(*cb, newVal);
+		Event<void(const char*)> *ev = (Event<void(const char*)>*)eventMap[string(name)];
+		ev->post(res->get_value_string().c_str());
 		break;
 	}
 	default:
 		break;
 	}
 
-	Logger.Trace("ResourceService - onValueUpdated(): %s - end", name);
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - onValueUpdated(): %s - end", name);
 }
 
 void arc::device::net::ResourceService::onMethodExecute(void* argument)
 {
-	Logger.Trace("ResourceService - onMethodExecute() - begin");
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - onMethodExecute() - begin");
 	if (argument) {
 		M2MResource::M2MExecuteParameter* param = (M2MResource::M2MExecuteParameter*)argument;
 		String resource_name = param->get_argument_resource_name();
@@ -177,21 +214,21 @@ void arc::device::net::ResourceService::onMethodExecute(void* argument)
 
 		M2MResource* res = instance->resource(resource_name);
 		ResourceType type = (ResourceType)res->resource_instance_type();
-		string name(resource_name.c_str());
+		const char* name = resource_name.c_str();
 		switch (type)
 		{
 		case INTEGER:
 		{
-			Callback<void(int)> *cb = (Callback<void(int)>*)cbMap[name];
+			Event<void(int)> *ev = (Event<void(int)>*)eventMap[string(name)];
 			res->set_value(payload, payload_length);
-			queue->call(*cb, res->get_value_int());
+			ev->post(res->get_value_int());
 			break;
 		}
 		case BOOLEAN:
 		{
-			Callback<void(bool)> *cb = (Callback<void(bool)>*)cbMap[name];
+			Event<void(bool)> *ev = (Event<void(bool)>*)eventMap[string(name)];
 			res->set_value(payload, payload_length);
-			queue->call(*cb, (bool)res->get_value_int());
+			ev->post((bool)res->get_value_int());
 			break;
 		}
 		default:
@@ -199,5 +236,5 @@ void arc::device::net::ResourceService::onMethodExecute(void* argument)
 		}
 	}
 
-	Logger.Trace("ResourceService - onMethodExecute() - end");
+	//Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "ResourceService - onMethodExecute() - end");
 }

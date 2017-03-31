@@ -23,9 +23,6 @@
     <ClCompile Include="src\net\ResourceService.cpp">
       <Filter>net</Filter>
     </ClCompile>
-    <ClCompile Include="src\interfaces\TestPanel.cpp">
-      <Filter>interfaces</Filter>
-    </ClCompile>
     <ClCompile Include="src\net\NetworkDiscovery.cpp">
       <Filter>net</Filter>
     </ClCompile>
@@ -52,6 +49,39 @@
     </ClCompile>
     <ClCompile Include="src\components\Led.cpp">
       <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\VoltageSensor.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\MainsController.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modules\UsbOutlet.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modules\ElectricalOutlet.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modules\NightLight.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\RgbLed.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\components\LightSensor.cpp">
+      <Filter>components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modules\LightSwitch.cpp">
+      <Filter>modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\interfaces\LightSwitchPanel.cpp">
+      <Filter>interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\interfaces\MotionDetectorPanel.cpp">
+      <Filter>interfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="src\modules\MotionDetector.cpp">
+      <Filter>modules</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,12 +132,6 @@
     <ClInclude Include="src\net\ResourceService.h">
       <Filter>net</Filter>
     </ClInclude>
-    <ClInclude Include="src\net\IResourceService.h">
-      <Filter>net</Filter>
-    </ClInclude>
-    <ClInclude Include="src\interfaces\TestPanel.h">
-      <Filter>interfaces</Filter>
-    </ClInclude>
     <ClInclude Include="src\net\NetworkDiscovery.h">
       <Filter>net</Filter>
     </ClInclude>
@@ -138,7 +162,47 @@
     <ClInclude Include="src\components\Led.h">
       <Filter>components</Filter>
     </ClInclude>
-    <ClInclude Include="src\mbed_config.h" />
+    <ClInclude Include="src\core\MainsController.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\VoltageSensor.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modules\UsbOutlet.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modules\ElectricalOutlet.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modules\NightLight.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\components\RgbLed.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mbed_config_include.h" />
+    <ClInclude Include="src\components\LightSensor.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\ModuleBase.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modules\LightSwitch.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interfaces\LightSwitchPanel.h">
+      <Filter>interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\interfaces\MotionDetectorPanel.h">
+      <Filter>interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\modules\MotionDetector.h">
+      <Filter>modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\IAuxController.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="security.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mbed_app.json" />

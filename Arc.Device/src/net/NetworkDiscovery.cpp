@@ -7,20 +7,22 @@
 #include <algorithm>
 #include "../security.h"
 
+using namespace arc::device::utils;
+
 arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Callback<void(char*, char*)> discoverComplete)
 	: espThread(osPriorityNormal, 512 * 5)
 {
-	Logger.Trace("NetworkDiscovery - ctor()");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "NetworkDiscovery - ctor()");
 
 	this->esp = esp;
 	this->discoverComplete = &discoverComplete;
 
-	Logger.Trace("starting up as AP...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "starting up as AP...");
 	if (esp->configureSoftAP("ARC_Discovery", "arc12345") == 0)
 	{
-		Logger.Trace("starting server...");
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "starting server...");
 		esp->startServer();
-		Logger.Trace("Server started");
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Server started");
 
 		espThread.start(callback(this, &NetworkDiscovery::listen));
 	}
@@ -32,13 +34,13 @@ arc::device::net::NetworkDiscovery::NetworkDiscovery(ESP8266Interface* esp, Call
 
 arc::device::net::NetworkDiscovery::~NetworkDiscovery()
 {
-	Logger.Trace("NetworkDiscovery - dtor()");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "NetworkDiscovery - dtor()");
 	espThread.terminate();
 
 	bool closed = esp->close(0);
-	Logger.Trace("closed: %d", closed);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "closed: %d", closed);
 
-	Logger.Trace("stopping server...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "stopping server...");
 	esp->stopServer();
 }
 
@@ -51,7 +53,7 @@ bool sortAp(WiFiAccessPoint a, WiFiAccessPoint b)
 
 void arc::device::net::NetworkDiscovery::scanNetworks()
 {
-	Logger.Trace("Getting AP List...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Getting AP List...");
 
 	apCount = esp->scan(apList, apCount);
 	std::sort(apList, apList + apCount, sortAp);
@@ -65,13 +67,13 @@ void arc::device::net::NetworkDiscovery::listen()
 {
 	string name("ESP");
 	Logger.mapThreadName((char*)name.c_str());
-	Logger.Trace("Receiving...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Receiving...");
 
 	while (1) {
 		char req[450];
 		string request;
 		int length = esp->recv(0, req, 450);
-		Logger.Trace("received: %d", length);
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "received: %d", length);
 		request = "";
 		if (length > 0)
 		{
@@ -115,7 +117,7 @@ void arc::device::net::NetworkDiscovery::sendAPList()
 			data["result"][j] = jObj;
 		}
 
-		Logger.Trace("Sending AP List...");
+		Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Sending AP List...");
 
 		string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json\r\nContent-Length: ");
 		string dataStr = data.serialize();
@@ -144,18 +146,18 @@ void arc::device::net::NetworkDiscovery::sendDeviceInfo()
 
 void arc::device::net::NetworkDiscovery::receiveAPCredentials(string request)
 {
-	Logger.Trace("Receiving AP credentials...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Receiving AP credentials...");
 	char ssid[50];
 	char pswd[100];
 
-	Logger.Trace("request: %s", request.c_str());
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "request: %s", request.c_str());
 	sscanf((char*)request.c_str(), "OPTIONS /?ssid=%[^&]&pswd=%s HTTP/1.1", ssid, pswd);
-	Logger.Trace("NetworkDiscovery - receiveAPCredentials() ssid: %s pswd: %s", ssid, pswd);
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "NetworkDiscovery - receiveAPCredentials() ssid: %s pswd: %s", ssid, pswd);
 
-	Logger.Trace("sending response...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "sending response...");
 	string response("HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 0\r\n\r\n");
 	esp->send(0, response.c_str(), response.length());
 
-	Logger.Trace("Adding one time task...");
+	Logger.queue.call(LogManager::Log, LogManager::TraceArgs(), "Adding one time task...");
 	discoverComplete->call(ssid, pswd);
 }

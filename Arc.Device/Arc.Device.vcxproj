@@ -110,14 +110,24 @@
     <ClCompile Include="src\components\Button.cpp" />
     <ClCompile Include="src\components\CurrentSensor.cpp" />
     <ClCompile Include="src\components\Led.cpp" />
+    <ClCompile Include="src\components\LightSensor.cpp" />
+    <ClCompile Include="src\components\RgbLed.cpp" />
     <ClCompile Include="src\components\Sensor.cpp" />
+    <ClCompile Include="src\components\VoltageSensor.cpp" />
     <ClCompile Include="src\core\Device.cpp" />
+    <ClCompile Include="src\core\MainsController.cpp" />
     <ClCompile Include="src\core\PanelInterfaceLoader.cpp" />
     <ClCompile Include="src\core\SystemController.cpp" />
     <ClCompile Include="src\core\TaskManager.cpp" />
     <ClCompile Include="src\interfaces\ElectricalOutletPanel.cpp" />
-    <ClCompile Include="src\interfaces\TestPanel.cpp" />
+    <ClCompile Include="src\interfaces\LightSwitchPanel.cpp" />
+    <ClCompile Include="src\interfaces\MotionDetectorPanel.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\modules\ElectricalOutlet.cpp" />
+    <ClCompile Include="src\modules\LightSwitch.cpp" />
+    <ClCompile Include="src\modules\MotionDetector.cpp" />
+    <ClCompile Include="src\modules\NightLight.cpp" />
+    <ClCompile Include="src\modules\UsbOutlet.cpp" />
     <ClCompile Include="src\net\ClientConnection.cpp" />
     <ClCompile Include="src\net\ConnectionManager.cpp" />
     <ClCompile Include="src\net\NetworkDiscovery.cpp" />
@@ -127,22 +137,34 @@
   <ItemGroup>
     <ClInclude Include="esp8266-driver\ESP8266Interface.h" />
     <ClInclude Include="esp8266-driver\ESP8266\ESP8266.h" />
+    <ClInclude Include="security.h" />
     <ClInclude Include="src\components\Button.h" />
     <ClInclude Include="src\components\CurrentSensor.h" />
     <ClInclude Include="src\components\Led.h" />
+    <ClInclude Include="src\components\LightSensor.h" />
+    <ClInclude Include="src\components\RgbLed.h" />
     <ClInclude Include="src\components\Sensor.h" />
+    <ClInclude Include="src\components\VoltageSensor.h" />
     <ClInclude Include="src\core\Device.h" />
+    <ClInclude Include="src\core\IAuxController.h" />
     <ClInclude Include="src\core\IPanelInterface.h" />
+    <ClInclude Include="src\core\MainsController.h" />
+    <ClInclude Include="src\core\ModuleBase.h" />
     <ClInclude Include="src\core\PanelInterfaceLoader.h" />
     <ClInclude Include="src\core\SystemController.h" />
     <ClInclude Include="src\core\Task.h" />
     <ClInclude Include="src\core\TaskManager.h" />
     <ClInclude Include="src\interfaces\ElectricalOutletPanel.h" />
-    <ClInclude Include="src\interfaces\TestPanel.h" />
-    <ClInclude Include="src\mbed_config.h" />
+    <ClInclude Include="src\interfaces\LightSwitchPanel.h" />
+    <ClInclude Include="src\interfaces\MotionDetectorPanel.h" />
+    <ClInclude Include="src\mbed_config_include.h" />
+    <ClInclude Include="src\modules\ElectricalOutlet.h" />
+    <ClInclude Include="src\modules\LightSwitch.h" />
+    <ClInclude Include="src\modules\MotionDetector.h" />
+    <ClInclude Include="src\modules\NightLight.h" />
+    <ClInclude Include="src\modules\UsbOutlet.h" />
     <ClInclude Include="src\net\ClientConnection.h" />
     <ClInclude Include="src\net\ConnectionManager.h" />
-    <ClInclude Include="src\net\IResourceService.h" />
     <ClInclude Include="src\net\NetworkDiscovery.h" />
     <ClInclude Include="src\net\ResourceService.h" />
     <ClInclude Include="src\utils\LogManager.h" />
@@ -167,22 +189,24 @@
 copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin
 copy $(Configuration)\NUCLEO_F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>mbed compile -c --profile build_debug.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_PWMOUT</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
+    <NMakeCleanCommandLine>rmdir /q /s $(Configuration)\NUCLEO_F401RE</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <NMakeBuildCommandLine>mbed compile --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
+    <NMakeBuildCommandLine>mbed compile --profile build_debug.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>mbed compile -c --profile build_debug.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC;RTC_LSI</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_DEBUG;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC;RTC_LSI;DEVICE_PWMOUT</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
+    <NMakeCleanCommandLine>rmdir /q /s $(Configuration)\ARC_STM32F401RE</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeBuildCommandLine>mbed compile --profile build_small.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE
@@ -190,22 +214,22 @@ copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeBu
     <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json -m NUCLEO_F401RE --build $(Configuration)\NUCLEO_F401RE
 copy $(Configuration)\NUCLEO_F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeReBuildCommandLine>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN</NMakePreprocessorDefinitions>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_NUCLEO_F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_PWMOUT</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
+    <NMakeCleanCommandLine>rmdir /q /s $(Configuration)\NUCLEO_F401RE</NMakeCleanCommandLine>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <NMakeBuildCommandLine>mbed compile --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin
 copy $(Configuration)\ARC_STM32F401RE\Arc.Device.elf BUILD\Arc.Device.elf</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE
-
-copy $(Configuration)\ARC_STM32F401RE\Arc.Device.bin BUILD\Arc.Device.bin</NMakeReBuildCommandLine>
-    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC</NMakePreprocessorDefinitions>
+    <NMakeReBuildCommandLine>mbed compile -c --profile build_small.json -m ARC_STM32F401RE --build $(Configuration)\ARC_STM32F401RE</NMakeReBuildCommandLine>
+    <NMakePreprocessorDefinitions>MBED_CONF_EVENTS_PRESENT;MBED_CONF_RTOS_PRESENT;DEVICE_SERIAL;MBED_STACK_STATS_ENABLED;MBED_CONFIG_ARC_STM32F401RE_RELEASE;DEVICE_LOCALFILESYSTEM;DEVICE_ANALOGIN;DEVICE_RTC;DEVICE_PWMOUT</NMakePreprocessorDefinitions>
     <NMakeIncludeSearchPath>${ProjectDir)mbed-os\features\FEATURE_COMMON_PAL\mbed-coap;$(ProjectDir)MbedJSONValue;$(ProjectDir)mbed-client\mbed-client-c;$(ProjectDir)mbed-client;$(ProjectDir)esp8266-driver;$(ProjectDir)mbed-os\features\netsocket;$(ProjectDir)mbed-os\features;$(ProjectDir)DebounceIn;$(ProjectDir)PinDetect;$(ProjectDir)mbed-os;$(ProjectDir)mbed-os\targets\TARGET_STM;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\TARGET_STM32F401xE\TARGET_NUCLEO_F401RE;$(ProjectDir)mbed-os\targets\TARGET_STM\TARGET_STM32F4\\TARGET_STM32F401xE\device;$(NMakeIncludeSearchPath)</NMakeIncludeSearchPath>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <NMakeOutput>
     </NMakeOutput>
+    <NMakeCleanCommandLine>rmdir /q /s $(Configuration)\ARC_STM32F401RE</NMakeCleanCommandLine>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <BuildLog>

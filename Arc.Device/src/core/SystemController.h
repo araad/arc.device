@@ -15,10 +15,10 @@ namespace arc
 				~SystemController();
 			private:
 				Thread th;
-				EventQueue queue;
 
 				void initWatchdog();
 				bool getAndClearWatchdogReset();
+				void kickWatchdogThreadStarter();
 				void kickWatchdog();
 			};
 		}

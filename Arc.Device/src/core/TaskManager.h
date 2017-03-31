@@ -1,8 +1,11 @@
 #pragma once
 
 #include "mbed.h"
+#include "Task.h"
+#include <map>
 
 using namespace events;
+using namespace std;
 
 namespace arc
 {
@@ -35,6 +38,7 @@ namespace arc
 				EventQueue* GetQueue();
 			private:
 				EventQueue queue;
+				map<int, TaskBase*> tasks;
 			};
 		}
 	}
