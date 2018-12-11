@@ -263,4 +263,4 @@ ModelManifest.xml
 /Arc.Device/MbedJSONValue
 /Arc.Device/mbed-client/
 /Arc.Device/pal/
-/Arc.Device/.mbed
+/Arc.Device/.mbedArc.Device/security.h
