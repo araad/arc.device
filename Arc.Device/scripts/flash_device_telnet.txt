@@ -1,9 +1,0 @@
-localhost 4444
-WAIT ">"
-SEND "reset halt\m"
-WAIT ">"
-SEND "stm32f4x mass_erase 0\m"
-WAIT ">"
-SEND "flash write_bank 0 Arc.Device.bin 0\m"
-WAIT ">"
-SEND "exit\m"
