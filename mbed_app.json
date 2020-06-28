@@ -1,0 +1,8 @@
+{
+    "target_overrides": {
+        "*": {
+            "platform.stdio-baud-rate"                  : 115200,
+            "platform.error-filename-capture-enabled"   : true
+        }
+    }
+}

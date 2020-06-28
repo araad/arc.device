@@ -1,0 +1,12 @@
+ROOT=.
+
+# Configure one of the following paths depending on your preferred toolchain
+#ARM_PATH=
+#GCC_ARM_PATH=
+#IAR_PATH=
+
+# Set it to one of the following toolchains (ARM, GCC_ARM, or IAR)
+TOOLCHAIN=
+
+#Set it to one of the preset targets supported by mbed-os or a custom target (e.g. NUCLEO_F401RE)
+TARGET=
