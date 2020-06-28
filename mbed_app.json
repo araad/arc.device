@@ -1,8 +1,22 @@
 {
-    "target_overrides": {
-        "*": {
-            "platform.stdio-baud-rate"                  : 115200,
-            "platform.error-filename-capture-enabled"   : true
-        }
+  "config": {
+    "log-level": "TRACE",
+    "freemem-cell": 100,
+    "max-thread-info": 10,
+    "max-thread-stats": 18
+  },
+  "target_overrides": {
+    "*": {
+      "platform.stdio-baud-rate": 115200,
+      "platform.callback-nontrivial": 1,
+      "platform.error-filename-capture-enabled": true,
+      "platform.heap-stats-enabled": true,
+      "platform.stack-stats-enabled": true,
+      "platform.thread-stats-enabled": true
+    },
+    "NUCLEO_F401RE": {
+      "events.shared-eventsize": 256,
+      "events.shared-stacksize": 1024
     }
+  }
 }
