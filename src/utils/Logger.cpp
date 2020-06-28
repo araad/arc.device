@@ -85,6 +85,8 @@ const char *arc::device::utils::Logger::getLogLevelString(LogLevel level)
 {
 	switch (level)
 	{
+	case DEBUG:
+		return "DEBUG";
 	case TRACE:
 		return "TRACE";
 	case INFO:

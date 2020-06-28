@@ -1,6 +1,6 @@
 {
   "config": {
-    "log-level": "TRACE",
+    "log-level": "DEBUG",
     "freemem-cell": 100,
     "max-thread-info": 10,
     "max-thread-stats": 18

@@ -17,7 +17,8 @@ namespace arc
 				ERROR,
 				WARN,
 				INFO,
-				TRACE
+				TRACE,
+				DEBUG
 			};
 
 			struct LogArgs
