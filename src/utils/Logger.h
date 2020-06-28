@@ -31,7 +31,8 @@ namespace arc
 			{
 			public:
 				static void Log(LogLevel level, char *format, ...);
-				static void init();
+				static void Initialize();
+				static LogLevel GetLogLevel();
 
 			private:
 				Logger() {}

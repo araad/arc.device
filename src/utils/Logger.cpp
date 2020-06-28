@@ -15,7 +15,7 @@ EventQueue Logger::queue(16 * EVENTS_EVENT_SIZE);
 Thread Logger::logThread(osPriorityLow, 1380, nullptr, "log");
 Mutex Logger::levelMutex;
 
-void Logger::init()
+void Logger::Initialize()
 {
 	if (!initialized)
 	{
@@ -26,6 +26,11 @@ void Logger::init()
 			initialized = true;
 		}
 	}
+}
+
+LogLevel Logger::GetLogLevel()
+{
+	return level;
 }
 
 void Logger::Log(LogLevel level, char *format, ...)
@@ -81,7 +86,7 @@ void Logger::logToOutput(LogArgs logArgs, char *logStr)
 	delete[] logStr;
 }
 
-const char *arc::device::utils::Logger::getLogLevelString(LogLevel level)
+const char *Logger::getLogLevelString(LogLevel level)
 {
 	switch (level)
 	{

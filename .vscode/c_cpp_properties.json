@@ -6,7 +6,9 @@
       "compilerPath": "~/Downloads/gcc-arm-none-eabi-9-2019-q4-major/bin/arm-none-eabi-gcc",
       "forcedInclude": [
         "BUILD/NUCLEO_F401RE/GCC_ARM/mbed_config.h",
-        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/CMSIS/system_stm32f4xx.h"
+        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/CMSIS/system_stm32f4xx.h",
+        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/STM32F4xx_HAL_Driver/stm32f4xx_hal_rcc.h",
+        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/CMSIS/stm32f401xe.h"
       ],
       "includePath": [
         ".",
