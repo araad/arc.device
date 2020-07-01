@@ -3,7 +3,11 @@
     "log-level": "DEBUG",
     "freemem-cell": 100,
     "max-thread-info": 10,
-    "max-thread-stats": 18
+    "max-thread-stats": 18,
+
+    "device-button": "NC",
+    "device-button-mode": "PullDown",
+    "device-status-led": "NC"
   },
   "target_overrides": {
     "*": {
@@ -16,7 +20,10 @@
     },
     "NUCLEO_F401RE": {
       "events.shared-eventsize": 256,
-      "events.shared-stacksize": 1024
+      "events.shared-stacksize": 1024,
+
+      "device-button": "PC_13",
+      "device-status-led": "PA_5"
     }
   }
 }

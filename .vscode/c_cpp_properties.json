@@ -60,7 +60,8 @@
         "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/STM32F4xx_HAL_Driver",
         "mbed-os/targets/TARGET_STM/TARGET_STM32F4/STM32Cube_FW/STM32F4xx_HAL_Driver/Legacy",
         "mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE",
-        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/TARGET_NUCLEO_F401RE"
+        "mbed-os/targets/TARGET_STM/TARGET_STM32F4/TARGET_STM32F401xE/TARGET_NUCLEO_F401RE",
+        "PinDetect"
       ],
       "defines": [
         "TARGET_NUCLEO_F401RE",
