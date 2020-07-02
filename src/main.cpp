@@ -1,6 +1,5 @@
 #include "mbed.h"
 #include "utils/Logger.h"
-#include "core/system/TaskManager.h"
 #include "core/system/SystemController.h"
 #include "core/Device.h"
 

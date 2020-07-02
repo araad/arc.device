@@ -1,11 +1,15 @@
 #include "Device.h"
+#include "net/ConnectionManager.h"
 #include "system/TaskManager.h"
 #include "utils/Logger.h"
 
 using namespace arc::device::core;
+using namespace arc::device::core::system;
 using namespace arc::device::utils;
+using namespace arc::device::net;
 
 TaskManager Tasks;
+ConnectionManager Connection;
 
 extern "C" void __NVIC_SystemReset();
 
@@ -40,6 +44,12 @@ void Device::Initialize()
     btn.Initialize();
     btn.addTapHandler(callback(this, &Device::onBtnTap));
     btn.addSingleHoldHandler(callback(this, &Device::onBtnHold));
+
+    // Start the connection
+    Connection.SetStatusLed(&statusLed);
+    initTask.state = core::TaskState::ASLEEP;
+    Tasks.AddOneTimeTask(callback(&Connection, &ConnectionManager::StartConnection));
+    initTask.state = core::TaskState::ALIVE;
 
     ModuleBase::Initialize();
 

@@ -7,7 +7,10 @@
 
     "device-button": "NC",
     "device-button-mode": "PullDown",
-    "device-status-led": "NC"
+    "device-status-led": "NC",
+
+    "ntp-server": "\"time.google.com\"",
+    "ntp-port": 123
   },
   "target_overrides": {
     "*": {
@@ -19,8 +22,12 @@
       "platform.thread-stats-enabled": true
     },
     "NUCLEO_F401RE": {
-      "events.shared-eventsize": 256,
-      "events.shared-stacksize": 1024,
+      "target.network-default-interface-type": "WIFI",
+      "esp8266.debug": false,
+      "esp8266.provide-default": true,
+      "esp8266.rx": "D2",
+      "esp8266.tx": "D8",
+      "esp8266.rst": "D4",
 
       "device-button": "PC_13",
       "device-status-led": "PA_5"

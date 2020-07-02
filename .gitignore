@@ -2,4 +2,6 @@
 mbed_settings.py
 mbed_settings.pyc
 mbed-os
+ntp-client
+PinDetect
 BUILD
