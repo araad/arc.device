@@ -13,3 +13,8 @@ ARC Device is an IoT project built with mbed-os for home automation.
 
 1. Install the [C/C++ Intellisense](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) extension
 2. Configure the `.vscode/c_cpp_properties.json` file according to your target device and development environment. The config file included in this project is for a `NUCLEO_F401RE` target and `Linux` as the development environment.
+
+#### To debug using VS Code:
+
+1. Install the [Cortex-Debug](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug) extension
+2. Configure the `.vscode/launch.json` file according to your target and development environment. The config file included in this project is for a `NUCLEO_F401RE` target and `Linux` as the development environment and `OpenOCD` as the debugger.
